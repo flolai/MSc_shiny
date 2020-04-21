@@ -55,8 +55,8 @@ ui <- fluidPage(
              
              sidebarPanel(
                
-               DT::dataTableOutput("autoscale_no_norm"),
-               DT::dataTableOutput("autoscale_log2_full"),
+               #DT::dataTableOutput("autoscale_no_norm"),
+               #DT::dataTableOutput("autoscale_log2_full"),
                
                
                
@@ -93,7 +93,8 @@ ui <- fluidPage(
                fluidRow(
                  splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_norm_out"))
                ),
-             )
+             ),
+             dataTableOutput("oplsda_no_norm_load"),
     )
   )
 )
@@ -229,19 +230,25 @@ server <- function(input, output,session){
   })
   
   
-  #oplsda_no_norm <- reactive({opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100)})
+  
+  oplsda_no_norm <- reactive({opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100)})
   
   observeEvent(input$oplsda_no_norm, {
     output$oplsda_no_norm_out <- renderPlot({
-      oplsda_no_norm <- opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100)
-      oplsda_no_norm_out<- as.data.frame(merge(getScoreMN(oplsda_no_norm),oplsda_no_norm@orthoScoreMN, by.x = 0, by.y = 0))
-      oplsda_no_norm_label <- oplsda_no_norm_out[,1]
-      oplsda_no_norm_out<-ggplot(oplsda_no_norm_out,aes(x=p1,y=o1,label = oplsda_no_norm_label, colour = as.character(samp_colour())))
-      oplsda_no_norm_out<-oplsda_no_norm_out +geom_point()+ geom_text(size = 3) + theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
+      oplsda_no_norm_out<- as.data.frame(merge(getScoreMN(oplsda_no_norm()),(getScoreMN(oplsda_no_norm(), orthoL = TRUE)), by.x = 0, by.y = 0))
+      oplsda_no_norm_label <- as.data.frame(getScoreMN(oplsda_no_norm()))
+      oplsda_no_norm_out<-ggplot(oplsda_no_norm_out,aes(x=p1,y=o1, label = row.names(oplsda_no_norm_label),colour = as.character(samp_colour())))
+      oplsda_no_norm_out<-oplsda_no_norm_out + geom_text(size = 3) + geom_point()+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
       oplsda_no_norm_out
       
     })
   })
+  
+  #output$oplsda_no_norm_load <-renderDataTable({
+  #  as.data.frame(oplsda_no_norm@loadingMN)
+  #})
+  
+  
   
   observeEvent(input$oplsda_norm, {
     output$oplsda_norm_out <- renderPlot({
