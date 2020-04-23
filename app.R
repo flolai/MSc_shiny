@@ -2,6 +2,7 @@
 library(shiny)
 library(dplyr)
 library(tidyr)
+library(tidyverse)
 library(plotly)
 library(ropls)
 library(ggiraph)
@@ -94,7 +95,8 @@ ui <- fluidPage(
                  splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_norm_out"))
                ),
              ),
-             dataTableOutput("oplsda_no_norm_load"),
+             actionButton("exp_neg_mk_no_norm", "negative loading markers no normalisation"),
+             DT::dataTableOutput("oplsda_no_norm_load"),
     )
   )
 )
@@ -107,6 +109,7 @@ ui <- fluidPage(
 # server()
 server <- function(input, output,session){
   options(shiny.maxRequestSize=30*1024^2)  
+  
   
   #reading metabolomics data, 1st column = sample name  
   meta <- reactive({
@@ -188,7 +191,7 @@ server <- function(input, output,session){
   
   
   #PCA for no log 2 normalised data
-  pca_full <- reactive({opls(autoscale_full$df,scaleC= "none")})
+  pca_full <- reactive(opls(autoscale_full$df,scaleC= "none"))
   observeEvent(input$pca_full_scores,{  
     output$pca_full_nice <- renderPlot({
       pca_full_scores<- as.data.frame(getScoreMN(pca_full()))
@@ -210,7 +213,7 @@ server <- function(input, output,session){
   
   #PCA for log2 normalalised data
   
-  PCA_log2 <- reactive({opls(autoscale_log2_full$df,scaleC= "none")})
+  PCA_log2 <- reactive(opls(autoscale_log2_full$df,scaleC= "none"))
   observeEvent(input$PCA_log2_scores,{
     output$pca_log2_nice <- renderPlot({
       PCA_log2_scores<- as.data.frame(getScoreMN(PCA_log2()))
@@ -231,7 +234,7 @@ server <- function(input, output,session){
   
   
   
-  oplsda_no_norm <- reactive({opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100)})
+  oplsda_no_norm <- reactive(opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100))
   
   observeEvent(input$oplsda_no_norm, {
     output$oplsda_no_norm_out <- renderPlot({
@@ -244,18 +247,42 @@ server <- function(input, output,session){
     })
   })
   
-  #output$oplsda_no_norm_load <-renderDataTable({
-  #  as.data.frame(oplsda_no_norm@loadingMN)
-  #})
+  #formatting potential biomarker data for potential export
+  marker_no_norm <- reactive(as.data.frame(merge(getLoadingMN(oplsda_no_norm()),(getVipVn(oplsda_no_norm())), by.x = 0, by.y = 0))) 
+  order_vip_no_norm <- reactive({marker_no_norm()[order(marker_no_norm()$y, decreasing=TRUE), ]})
+  top_500_marker_no_norm <- reactive(order_vip_no_norm()[1:500,])
+  
+  neg_load_no_norm <- reactiveValues()
+  
+  observeEvent(input$exp_neg_mk_no_norm, {
+    neg_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 <= 0)
+    names(neg_load_no_norm$df)[1] <- paste("Biomarkers for",head(samp_colour()))
+    names(neg_load_no_norm$df)[2] <- 'P1 loading'
+    names(neg_load_no_norm$df)[3] <- 'VIP'
+  })
+  
+  pos_load_no_norm <- reactiveValues()
+  
+  observeEvent(input$exp_neg_mk_no_norm, {
+    pos_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 >= 0)
+    names(pos_load_no_norm$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
+    names(pos_load_no_norm$df)[2] <- 'P1 loading'
+    names(pos_load_no_norm$df)[3] <- 'VIP'
+  })
   
   
   
+  #test printing dummy code
+  #output$oplsda_no_norm_load <-DT::renderDataTable(pos_load_no_norm$df, rownames= FALSE)
+  
+  
+  
+  oplsda_norm <- reactive(opls(autoscale_log2_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100))
   observeEvent(input$oplsda_norm, {
     output$oplsda_norm_out <- renderPlot({
-      oplsda_norm <- opls(autoscale_log2_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100)
-      oplsda_norm_out<- as.data.frame(merge(getScoreMN(oplsda_norm),oplsda_norm@orthoScoreMN, by.x = 0, by.y = 0))
-      oplsda_norm_label <- oplsda_norm_out[,1]
-      oplsda_norm_out<-ggplot(oplsda_norm_out,aes(x=p1,y=o1,label = oplsda_norm_label, colour = as.character(samp_colour())))
+      oplsda_norm_out<- as.data.frame(merge(getScoreMN(oplsda_norm()),(getScoreMN(oplsda_norm(), orthoL = TRUE)), by.x = 0, by.y = 0))
+      oplsda_norm_label <- as.data.frame(getScoreMN(oplsda_norm()))
+      oplsda_norm_out<-ggplot(oplsda_norm_out,aes(x=p1,y=o1,label = row.names(oplsda_norm_label), colour = as.character(samp_colour())))
       oplsda_norm_out<-oplsda_norm_out +geom_point()+ geom_text(size = 3) + theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
       oplsda_norm_out
       
