@@ -3,6 +3,7 @@ library(shiny)
 library(dplyr)
 library(tidyr)
 library(tidyverse)
+library(reshape)
 library(plotly)
 library(ropls)
 library(ggiraph)
@@ -95,8 +96,9 @@ ui <- fluidPage(
                  splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_norm_out"))
                ),
              ),
-             actionButton("exp_neg_mk_no_norm", "negative loading markers no normalisation"),
-             DT::dataTableOutput("oplsda_no_norm_load"),
+             actionButton("biomarkers", "To view biomarkers"),
+             #actionButton("dummy_exp_test", "dummy_exp_test"),
+             DT::dataTableOutput("biomarkers"),
     )
   )
 )
@@ -126,6 +128,41 @@ server <- function(input, output,session){
     }
     read.csv(input$ngs$datapath, header = TRUE, row.names = 1) 
   })
+  
+  comp_name <- reactive({
+    if (is.null(input$comp_name)){
+      return(NULL)
+    }
+    read.csv(input$comp_name$datapath, header = FALSE)
+    
+  })
+  
+  gene_name <- reactive({
+    if (is.null(input$gene_name)){
+      return(NULL)
+    }
+    read.csv(input$gene_name$datapath, header = FALSE)
+    
+  })
+  
+  
+  
+  all_names <- reactive({
+    temp_comp <- t(meta())
+    temp_comp <- as.data.frame(row.names(temp_comp))
+    temp_gene <- t(ngs())
+    temp_gene <- as.data.frame(row.names(temp_gene))
+    colnames(temp_gene)[1] <- 'ID'
+    colnames(temp_comp)[1] <- 'ID'
+    comp_gene <- rbind(temp_comp, temp_gene) # data part of gene and compound name, only taking the row name as no data is needed at this point
+    all_comp_gene <- rbind(comp_name(),gene_name()) #merging of gene name and compound names given
+    all_names <- merge(comp_gene, all_comp_gene, by.x = 1, by.y = 1)
+    colnames(all_names)[2] <- 'Name'
+    all_names<- as.data.frame(all_names)
+    })
+  
+  
+  
   
   #reading sample details for classification    
   samp_detail <- reactive({
@@ -252,30 +289,32 @@ server <- function(input, output,session){
   order_vip_no_norm <- reactive({marker_no_norm()[order(marker_no_norm()$y, decreasing=TRUE), ]})
   top_500_marker_no_norm <- reactive(order_vip_no_norm()[1:500,])
   
+  biomarkers <- reactiveValues()
   neg_load_no_norm <- reactiveValues()
   
-  observeEvent(input$exp_neg_mk_no_norm, {
+  observeEvent(input$biomarkers,{
     neg_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 <= 0)
     names(neg_load_no_norm$df)[1] <- paste("Biomarkers for",head(samp_colour()))
     names(neg_load_no_norm$df)[2] <- 'P1 loading'
     names(neg_load_no_norm$df)[3] <- 'VIP'
+    neg_load_no_norm$df
   })
   
+  
+  
+  observeEvent(input$biomarkers, {
+    biomarkers$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+    
+  })
+
   pos_load_no_norm <- reactiveValues()
   
-  observeEvent(input$exp_neg_mk_no_norm, {
+  observeEvent(input$exp_pos_mk_no_norm, {
     pos_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 >= 0)
     names(pos_load_no_norm$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
     names(pos_load_no_norm$df)[2] <- 'P1 loading'
     names(pos_load_no_norm$df)[3] <- 'VIP'
   })
-  
-  
-  
-  #test printing dummy code
-  #output$oplsda_no_norm_load <-DT::renderDataTable(pos_load_no_norm$df, rownames= FALSE)
-  
-  
   
   oplsda_norm <- reactive(opls(autoscale_log2_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100))
   observeEvent(input$oplsda_norm, {
@@ -289,6 +328,32 @@ server <- function(input, output,session){
     })
   })
   
+  markers <- reactive(as.data.frame(merge(getLoadingMN(oplsda_norm()),(getVipVn(oplsda_norm())), by.x = 0, by.y = 0))) 
+  order_vip <- reactive({markers()[order(markers()$y, decreasing=TRUE), ]})
+  top_500_marker <- reactive(order_vip()[1:500,])
+  
+  neg_load <- reactiveValues()
+  
+  observeEvent(input$exp_neg_mk, {
+    neg_load$df <- subset(top_500_marker(), top_500_marker()$p1 <= 0)
+    names(neg_load$df)[1] <- paste("Biomarkers for",head(samp_colour()))
+    names(neg_load$df)[2] <- 'P1 loading'
+    names(neg_load$df)[3] <- 'VIP'
+  })
+  
+  pos_load <- reactiveValues()
+  
+  observeEvent(input$exp_pos_mk, {
+    pos_load$df <- subset(top_500_marker(), top_500_marker()$p1 >= 0)
+    names(pos_load$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
+    names(pos_load$df)[2] <- 'P1 loading'
+    names(pos_load$df)[3] <- 'VIP'
+  })
+  
+  
+  
+  #test printing dummy code
+  output$biomarkers <-DT::renderDataTable(biomarkers$df, rownames= FALSE)
   
   
   
