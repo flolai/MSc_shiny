@@ -92,13 +92,16 @@ ui <- fluidPage(
                  splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_no_norm_out"))
                ),
                
+               
                fluidRow(
                  splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_norm_out"))
                ),
+
              ),
-             actionButton("biomarkers", "To view biomarkers"),
-             #actionButton("dummy_exp_test", "dummy_exp_test"),
-             DT::dataTableOutput("biomarkers"),
+             actionButton("biomarkers_gp1", "Biomarkers for first group in OPLS-DA model"),
+             DT::dataTableOutput("biomarkers_gp1"),
+             actionButton("biomarkers_gp2", "Biomarkers for second group in OPLS-DA model"),
+             DT::dataTableOutput("biomarkers_gp2"),
     )
   )
 )
@@ -284,15 +287,18 @@ server <- function(input, output,session){
     })
   })
   
+
+  
   #formatting potential biomarker data for potential export
   marker_no_norm <- reactive(as.data.frame(merge(getLoadingMN(oplsda_no_norm()),(getVipVn(oplsda_no_norm())), by.x = 0, by.y = 0))) 
   order_vip_no_norm <- reactive({marker_no_norm()[order(marker_no_norm()$y, decreasing=TRUE), ]})
   top_500_marker_no_norm <- reactive(order_vip_no_norm()[1:500,])
   
-  biomarkers <- reactiveValues()
+  biomarkers_gp1 <- reactiveValues()
+  biomarkers_gp2 <- reactiveValues()
   neg_load_no_norm <- reactiveValues()
   
-  observeEvent(input$biomarkers,{
+  observeEvent(input$biomarkers_gp1,{
     neg_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 <= 0)
     names(neg_load_no_norm$df)[1] <- paste("Biomarkers for",head(samp_colour()))
     names(neg_load_no_norm$df)[2] <- 'P1 loading'
@@ -301,20 +307,28 @@ server <- function(input, output,session){
   })
   
   
-  
-  observeEvent(input$biomarkers, {
-    biomarkers$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+  #to view biomarkers on the fly
+  observeEvent(input$biomarkers_gp1, {
+    biomarkers_gp1$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
     
   })
-
+  
   pos_load_no_norm <- reactiveValues()
   
-  observeEvent(input$exp_pos_mk_no_norm, {
+  observeEvent(input$biomarkers_gp2, {
     pos_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 >= 0)
     names(pos_load_no_norm$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
     names(pos_load_no_norm$df)[2] <- 'P1 loading'
     names(pos_load_no_norm$df)[3] <- 'VIP'
   })
+  
+  observeEvent(input$biomarkers_gp2, {
+    biomarkers_gp2$df <- as.data.frame(merge(pos_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+    
+  })
+  
+  
+  #normalised section
   
   oplsda_norm <- reactive(opls(autoscale_log2_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100))
   observeEvent(input$oplsda_norm, {
@@ -352,8 +366,9 @@ server <- function(input, output,session){
   
   
   
-  #test printing dummy code
-  output$biomarkers <-DT::renderDataTable(biomarkers$df, rownames= FALSE)
+  #Printing biomarkers on the page
+  output$biomarkers_gp1 <-DT::renderDataTable(biomarkers_gp1$df, rownames= FALSE)
+  output$biomarkers_gp2 <-DT::renderDataTable(biomarkers_gp2$df, rownames= FALSE)
   
   
   
