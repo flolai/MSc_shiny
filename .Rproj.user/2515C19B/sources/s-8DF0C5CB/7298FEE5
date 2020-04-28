@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1588109311758.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "7298FEE5",
+    "lastKnownWriteTime" : 4599593443235882913,
+    "last_content_update" : 1588109311758,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "id" : "6caff52fd8f54dd189c60e75457194a9",
+        "name" : "plt_no_norm",
+        "title" : "plt_no_norm"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "object_explorer"
+}
