@@ -80,6 +80,7 @@ ui <- fluidPage(
                  splitLayout(cellWidths = c("50%", "50%"), plotOutput("pca_full_nice"), girafeOutput("pca_full_loadings"))
                ),
                
+               
                fluidRow(
                  splitLayout(cellWidths = c("50%", "50%"), plotOutput("pca_log2_nice"), girafeOutput("pca_log2_loadings"))
                ),
@@ -92,6 +93,7 @@ ui <- fluidPage(
                  splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_no_norm_out"), plotOutput("perm_no_norm_plot")) # to add permutation
                ),
                
+               tableOutput("no_norm_sum"),
                
                fluidRow(
                  splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_norm_out"))
@@ -287,24 +289,32 @@ server <- function(input, output,session){
       
     })
     
-    #got problem here
+    perm_no_norm <- reactiveValues()
+    
+    observeEvent(input$oplsda_no_norm, {
+      perm_no_norm$df <- as.data.frame(oplsda_no_norm()@suppLs[["permMN"]])
+      perm_no_norm$df <- subset(perm_no_norm$df, select= c(`R2Y(cum)`, `Q2(cum)`, sim))
+      perm_no_norm$df <- melt(perm_no_norm$df, id = 'sim')
+      
+      
+    })
+    
     output$perm_no_norm_plot <- renderPlot({
-    perm_no_norm <- as.data.frame(oplsda_no_norm()@suppLs[["permMN"]])
-    perm_no_norm <- subset(perm_no_norm, select= c(`R2Y(cum)`, `Q2(cum)`, sim))
-    perm_no_norm <- melt(perm_no_norm, id = 'sim')
-    plt_no_norm <- ggplot(perm_no_norm, aes(sim, value, col = variable)) + geom_point()
+    #perm_no_norm <- as.data.frame(oplsda_no_norm()@suppLs[["permMN"]])
+    #perm_no_norm <- subset(perm_no_norm, select= c(`R2Y(cum)`, `Q2(cum)`, sim))
+    #perm_no_norm <- melt(perm_no_norm, id = 'sim')
+    perm_no_norm_plot <- ggplot(perm_no_norm$df, aes(sim, value, col = variable)) + geom_point()
     no_norm_sum <- tableGrob(as.data.frame(getSummaryDF(oplsda_no_norm())))
-    perm_no_norm_plot <- grid.arrange(plt_no_norm, no_norm_sum, nrows = 2, as.table = TRUE, heights = c(3,1))
+    #perm_no_norm_plot <- grid.arrange(plt_no_norm, no_norm_sum, nrows = 2, as.table = TRUE, heights = c(3,1))
     perm_no_norm_plot
     })
   })
+  observeEvent(input$oplsda_no_norm, {
+  output$no_norm_sum <- renderTable({
+    no_norm_sum <- as.data.frame(getSummaryDF(oplsda_no_norm()))
+  })
+  })
   
-  
-  
-  
-      
-      
-
   
   #formatting potential biomarker data for potential export
   marker_no_norm <- reactive(as.data.frame(merge(getLoadingMN(oplsda_no_norm()),(getVipVn(oplsda_no_norm())), by.x = 0, by.y = 0))) 
