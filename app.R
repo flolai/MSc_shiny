@@ -1,7 +1,7 @@
 
 library(shiny)
 library(dplyr)
-library(tidyr)
+library(reshape)
 library(tidyverse)
 library(plotly)
 library(ropls)
@@ -96,14 +96,16 @@ ui <- fluidPage(
                tableOutput("no_norm_sum"),
                
                fluidRow(
-                 splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_norm_out"))
+                 splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_norm_out"),plotOutput("perm_norm_plot") )
                ),
-
+               tableOutput("norm_sum"),
              ),
              actionButton("biomarkers_gp1", "Biomarkers for first group in OPLS-DA model"),
              DT::dataTableOutput("biomarkers_gp1"),
              actionButton("biomarkers_gp2", "Biomarkers for second group in OPLS-DA model"),
              DT::dataTableOutput("biomarkers_gp2"),
+             
+             downloadButton("downloadData", "Download"),
     )
   )
 )
@@ -164,7 +166,7 @@ server <- function(input, output,session){
     all_names <- merge(comp_gene, all_comp_gene, by.x = 1, by.y = 1)
     colnames(all_names)[2] <- 'Name'
     all_names<- as.data.frame(all_names)
-    })
+  })
   
   
   
@@ -300,20 +302,19 @@ server <- function(input, output,session){
     })
     
     output$perm_no_norm_plot <- renderPlot({
-    #perm_no_norm <- as.data.frame(oplsda_no_norm()@suppLs[["permMN"]])
-    #perm_no_norm <- subset(perm_no_norm, select= c(`R2Y(cum)`, `Q2(cum)`, sim))
-    #perm_no_norm <- melt(perm_no_norm, id = 'sim')
-    perm_no_norm_plot <- ggplot(perm_no_norm$df, aes(sim, value, col = variable)) + geom_point()
-    no_norm_sum <- tableGrob(as.data.frame(getSummaryDF(oplsda_no_norm())))
-    #perm_no_norm_plot <- grid.arrange(plt_no_norm, no_norm_sum, nrows = 2, as.table = TRUE, heights = c(3,1))
-    perm_no_norm_plot
+      perm_no_norm_plot <- ggplot(perm_no_norm$df, aes(sim, value, col = variable)) + geom_point()
+      no_norm_sum <- tableGrob(as.data.frame(getSummaryDF(oplsda_no_norm())))
+      perm_no_norm_plot
     })
   })
   observeEvent(input$oplsda_no_norm, {
-  output$no_norm_sum <- renderTable({
-    no_norm_sum <- as.data.frame(getSummaryDF(oplsda_no_norm()))
+    output$no_norm_sum <- renderTable({
+      no_norm_sum <- as.data.frame(getSummaryDF(oplsda_no_norm()))
+    })
   })
-  })
+  
+  
+  
   
   
   #formatting potential biomarker data for potential export
@@ -334,7 +335,7 @@ server <- function(input, output,session){
   })
   
   
-  #to view biomarkers on the fly
+  #to view biomarkers
   observeEvent(input$biomarkers_gp1, {
     biomarkers_gp1$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
     
@@ -354,10 +355,6 @@ server <- function(input, output,session){
     
   })
   
- 
-  
-  
-  
   
   #normalised section
   
@@ -373,26 +370,66 @@ server <- function(input, output,session){
     })
   })
   
-  markers <- reactive(as.data.frame(merge(getLoadingMN(oplsda_norm()),(getVipVn(oplsda_norm())), by.x = 0, by.y = 0))) 
-  order_vip <- reactive({markers()[order(markers()$y, decreasing=TRUE), ]})
-  top_500_marker <- reactive(order_vip()[1:500,])
+  perm_norm <- reactiveValues()
   
-  neg_load <- reactiveValues()
-  
-  observeEvent(input$exp_neg_mk, {
-    neg_load$df <- subset(top_500_marker(), top_500_marker()$p1 <= 0)
-    names(neg_load$df)[1] <- paste("Biomarkers for",head(samp_colour()))
-    names(neg_load$df)[2] <- 'P1 loading'
-    names(neg_load$df)[3] <- 'VIP'
+  observeEvent(input$oplsda_norm, {
+    perm_norm$df <- as.data.frame(oplsda_norm()@suppLs[["permMN"]])
+    perm_norm$df <- subset(perm_norm$df, select= c(`R2Y(cum)`, `Q2(cum)`, sim))
+    perm_norm$df <- melt(perm_norm$df, id = 'sim')
+    
+    
   })
   
-  pos_load <- reactiveValues()
+  output$perm_norm_plot <- renderPlot({
+    perm_norm_plot <- ggplot(perm_norm$df, aes(sim, value, col = variable)) + geom_point()
+    norm_sum <- tableGrob(as.data.frame(getSummaryDF(oplsda_norm())))
+    perm_norm_plot
+  })
   
-  observeEvent(input$exp_pos_mk, {
-    pos_load$df <- subset(top_500_marker(), top_500_marker()$p1 >= 0)
-    names(pos_load$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
-    names(pos_load$df)[2] <- 'P1 loading'
-    names(pos_load$df)[3] <- 'VIP'
+  observeEvent(input$oplsda_norm, {
+    output$norm_sum <- renderTable({
+      norm_sum <- as.data.frame(getSummaryDF(oplsda_norm()))
+    })
+  })
+  
+  
+  
+  #formatting potential biomarker data for potential export - normalised data
+  marker_norm <- reactive(as.data.frame(merge(getLoadingMN(oplsda_norm()),(getVipVn(oplsda_norm())), by.x = 0, by.y = 0))) 
+  order_vip_norm <- reactive({marker_norm()[order(marker_norm()$y, decreasing=TRUE), ]})
+  top_500_marker_norm <- reactive(order_vip_norm()[1:500,])
+  
+  biomarkers_gp1 <- reactiveValues()
+  biomarkers_gp2 <- reactiveValues()
+  neg_load_norm <- reactiveValues()
+  
+  observeEvent(input$biomarkers_gp1,{
+    neg_load_norm$df <- subset(top_500_marker_norm(), top_500_marker_norm()$p1 <= 0)
+    names(neg_load_norm$df)[1] <- paste("Biomarkers for",head(samp_colour()))
+    names(neg_load_norm$df)[2] <- 'P1 loading'
+    names(neg_load_norm$df)[3] <- 'VIP'
+    neg_load_norm$df
+  })
+  
+  
+  #to view biomarkers
+  observeEvent(input$biomarkers_gp1, {
+    biomarkers_gp1$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+    
+  })
+  
+  pos_load_norm <- reactiveValues()
+  
+  observeEvent(input$biomarkers_gp2, {
+    pos_load_norm$df <- subset(top_500_marker_norm(), top_500_marker_norm()$p1 >= 0)
+    names(pos_load_norm$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
+    names(pos_load_norm$df)[2] <- 'P1 loading'
+    names(pos_load_norm$df)[3] <- 'VIP'
+  })
+  
+  observeEvent(input$biomarkers_gp2, {
+    biomarkers_gp2$df <- as.data.frame(merge(pos_load_norm$df,all_names(), by.x = 1, by.y = 1))
+    
   })
   
   
@@ -401,7 +438,14 @@ server <- function(input, output,session){
   output$biomarkers_gp1 <-DT::renderDataTable(biomarkers_gp1$df, rownames= FALSE)
   output$biomarkers_gp2 <-DT::renderDataTable(biomarkers_gp2$df, rownames= FALSE)
   
-  
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste(input$biomarkers_gp1, ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(biomarkers_gp1$df, file, row.names = FALSE)
+    }
+  )
   
 }
 
