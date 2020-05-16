@@ -13,14 +13,22 @@ library(shinydashboard)
 ui <- fluidPage(
   titlePanel("Intergration of metabolomics and transcriptomics data"),
   
+
+ 
+                   
+  
+  
   tabsetPanel(
     tabPanel("Data Input",
              tags$style(type="text/css",
-                        ".shiny-output-error { visibility: hidden; }",
+                        
                         ".shiny-output-error:before { visibility: hidden; }"
+                        
              ),  
+             fixedPanel(includeMarkdown("My First Shiny App.md"), 
+                           right = 800),
              
-             
+            # ".shiny-output-error { visibility: hidden; }",
              fileInput(inputId = "metadata",
                        label = "metabolomics data in csv format",
                        multiple = TRUE,
@@ -40,7 +48,11 @@ ui <- fluidPage(
                        label = "Gene name in csv format",
                        multiple = TRUE,
                        accept = c(".csv")),
+            
+            
     ),
+    
+    
     
     tabPanel("Plots",
              fileInput(inputId = "samp_detail",
@@ -56,10 +68,6 @@ ui <- fluidPage(
              
              
              sidebarPanel(
-               
-               #DT::dataTableOutput("autoscale_no_norm"),
-               #DT::dataTableOutput("autoscale_log2_full"),
-               
                
                
                tags$hr(),
@@ -126,7 +134,10 @@ server <- function(input, output,session){
       return(NULL)
     }
     read.csv(input$metadata$datapath, header = TRUE, row.names = 1)
+    
   })
+  
+
   
   #reading transcriptomics data, 1st column = sample name    
   ngs <- reactive({
@@ -134,7 +145,10 @@ server <- function(input, output,session){
       return(NULL)
     }
     read.csv(input$ngs$datapath, header = TRUE, row.names = 1) 
+    
   })
+  
+  
   
   comp_name <- reactive({
     if (is.null(input$comp_name)){
@@ -204,7 +218,6 @@ server <- function(input, output,session){
   
   observeEvent(input$do_norm, {
     log2_full$df <- transform(merge(log2(meta()), log2(ngs()), by.x = 0, by.y = 0, row.names = Row.names, Row.names = NULL)) #log2 normalisaion
-    
   })
   
   
@@ -213,27 +226,20 @@ server <- function(input, output,session){
   observeEvent(input$autoscale_no_norm, {
     merge_full$df[is.na(merge_full$df)] <- 0.001
     autoscale_full$df<-scale(merge_full$df, center = TRUE, scale = TRUE)
-    
+    autoscale_full$df[is.na(autoscale_full$df)] <- 0.001
   })
   
-  #output$autoscale_no_norm <-DT::renderDataTable({
-  #  autoscale_full$df
-  # })
+
   
   autoscale_log2_full <- reactiveValues()
   
   observeEvent(input$autoscale_log2, {
     rownames(log2_full$df)<- log2_full$df[,1]
-    log2_full$df[is.na(log2_full$df)] <- 0.001
     autoscale_log2_full$df<-scale(log2_full$df[,-1], center = TRUE, scale = TRUE)
+    autoscale_log2_full$df[is.na(autoscale_log2_full$df)] <- 0.001
   })
   
-  #    output$autoscale_log2_full <-DT::renderDataTable({
-  #      autoscale_log2_full$df
-  #    })
-  
-  
-  
+
   #PCA for no log 2 normalised data
   pca_full <- reactive(opls(autoscale_full$df,scaleC= "none"))
   observeEvent(input$pca_full_scores,{  
@@ -314,9 +320,6 @@ server <- function(input, output,session){
   })
   
   
-  
-  
-  
   #formatting potential biomarker data for potential export
   marker_no_norm <- reactive(as.data.frame(merge(getLoadingMN(oplsda_no_norm()),(getVipVn(oplsda_no_norm())), by.x = 0, by.y = 0))) 
   order_vip_no_norm <- reactive({marker_no_norm()[order(marker_no_norm()$y, decreasing=TRUE), ]})
@@ -359,6 +362,7 @@ server <- function(input, output,session){
   #normalised section
   
   oplsda_norm <- reactive(opls(autoscale_log2_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100))
+  
   observeEvent(input$oplsda_norm, {
     output$oplsda_norm_out <- renderPlot({
       oplsda_norm_out<- as.data.frame(merge(getScoreMN(oplsda_norm()),(getScoreMN(oplsda_norm(), orthoL = TRUE)), by.x = 0, by.y = 0))
