@@ -39,11 +39,7 @@ ui <- fluidPage(
                        label = "Gene name in csv format",
                        multiple = TRUE,
                        accept = c(".csv")),
-             
-             
     ),
-    
-    
     
     tabPanel("Plots",
              fileInput(inputId = "samp_detail",
