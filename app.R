@@ -1,27 +1,18 @@
 
-library(shiny)
-library(dplyr)
-library(reshape)
-library(tidyverse)
-library(plotly)
+if(!require('pacman'))install.packages('pacman')
+pacman::p_load(shiny,dplyr,reshape,plotly,tidyverse,ggiraph, gridExtra)
+
 library(ropls)
-library(ggiraph)
-library(gridExtra)
-#library(shinydashboard)
+citation("ropls")
 
 # ui object
 ui <- fluidPage(
   titlePanel("Intergration of metabolomics and transcriptomics data"),
   
-  
-  
-  
-  
-  
   tabsetPanel(
     tabPanel("Data Input",
              tags$style(type="text/css",
-                        ".shiny-output-error { visibility: hidden; }",
+                        #".shiny-output-error { visibility: hidden; }",
                         ".shiny-output-error:before { visibility: hidden; }"
                         
              ),  
@@ -69,22 +60,25 @@ ui <- fluidPage(
              
              sidebarPanel(
                
-               
                tags$hr(),
                actionButton("do", "Click to merge omics data - no log2 normalisation"),
                tags$hr(),
-               actionButton("do_norm", "Click to merge omics data - log2 normalisation"),
-               tags$hr(),
                actionButton("pca_full_scores", "Click to autoscaling merged data set - no normalisation"),
                tags$hr(),
-               actionButton("PCA_log2_scores", "Click to autoscaling log2 normalised merged data set")
-               
+               actionButton("oplsda_no_norm", "OPLS-DA model for not normalised data"),
+               tags$hr(),
+               actionButton("do_norm", "Click to merge omics data - log2 normalisation"),
+               tags$hr(),
+               actionButton("PCA_log2_scores", "Click to autoscaling log2 normalised merged data set"),
+               tags$hr(),
+               actionButton("oplsda_norm", "OPLS-DA model for normalised data"),
+               tags$hr(),
              ),
              mainPanel(
                conditionalPanel(
                  condition = ("input.pca_full_scores != 0"),
                  fluidRow(
-                   column(width = 4, 
+                   column(width = 5, 
                           h4("PCA scores plot for non normalised data"),
                           plotOutput("pca_full_nice")), 
                    column(width = 4, 
@@ -95,8 +89,8 @@ ui <- fluidPage(
                           h4("Selected genes and metabolites"),
                           DT::dataTableOutput("datatab")),
                  )
-                 ),
-                 conditionalPanel(
+               ),
+               conditionalPanel(
                  condition = ("input.do_norm != 0"),
                  fluidRow(
                    column(width = 4, 
@@ -111,27 +105,46 @@ ui <- fluidPage(
                           DT::dataTableOutput("datatab_log2")),
                  )
                ),
-   
-               actionButton("oplsda_no_norm", "OPLS-DA model for not normalised data"),
-               actionButton("oplsda_norm", "OPLS-DA model for normalised data"),
                
-               fluidRow(
-                 splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_no_norm_out"), plotOutput("perm_no_norm_plot")) # to add permutation
+               
+               conditionalPanel(
+                 condition = ("input.oplsda_no_norm != 0"),
+                 fluidRow(
+                   column(width = 5, 
+                          h4("OPLS-DA scores plot for non-normalised data"),
+                          plotOutput("oplsda_no_norm_out")), 
+                   column(width = 5, 
+                          h4("Permutation model validation Plot"),
+                          plotOutput("perm_no_norm_plot"))
+                 )
                ),
                
                tableOutput("no_norm_sum"),
                
-               fluidRow(
-                 splitLayout(cellWidths = c("50%", "50%"),plotOutput("oplsda_norm_out"),plotOutput("perm_norm_plot") )
+               conditionalPanel(
+                 condition = ("input.oplsda_norm != 0"),
+                 fluidRow(
+                   column(width = 5, 
+                          h4("OPLS-DA scores plot for normalised data"),
+                          plotOutput("oplsda_norm_out")), 
+                   column(width = 5, 
+                          h4("Permutation model validation Plot"),
+                          plotOutput("perm_norm_plot"))
+                 )
                ),
                tableOutput("norm_sum"),
              ),
-             actionButton("biomarkers_gp1", "Biomarkers for first group in OPLS-DA model"),
-             DT::dataTableOutput("biomarkers_gp1"),
-             actionButton("biomarkers_gp2", "Biomarkers for second group in OPLS-DA model"),
-             DT::dataTableOutput("biomarkers_gp2"),
-             
-             downloadButton("downloadData", "Download"),
+    ),
+    tabPanel("Biomarkers",
+             mainPanel( 
+               tags$hr(),             
+               DT::dataTableOutput("biomarkers_gp1_no_norm"),
+               DT::dataTableOutput("biomarkers_gp2_no_norm"),
+               DT::dataTableOutput("biomarkers_gp1"),
+               DT::dataTableOutput("biomarkers_gp2"),
+               
+               downloadButton("downloadData", "Download"),
+             )
     )
   )
 )
@@ -180,7 +193,6 @@ server <- function(input, output,session){
     read.csv(input$gene_name$datapath, header = FALSE)
     
   })
-  
   
   
   all_names <- reactive({
@@ -390,11 +402,11 @@ server <- function(input, output,session){
   order_vip_no_norm <- reactive({marker_no_norm()[order(marker_no_norm()$y, decreasing=TRUE), ]})
   top_500_marker_no_norm <- reactive(order_vip_no_norm()[1:500,])
   
-  biomarkers_gp1 <- reactiveValues()
-  biomarkers_gp2 <- reactiveValues()
+  biomarkers_gp1_no_norm <- reactiveValues()
+  biomarkers_gp2_no_norm <- reactiveValues()
   neg_load_no_norm <- reactiveValues()
   
-  observeEvent(input$biomarkers_gp1,{
+  observeEvent(input$oplsda_no_norm,{
     neg_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 <= 0)
     names(neg_load_no_norm$df)[1] <- paste("Biomarkers for left hand group from scores plot")
     names(neg_load_no_norm$df)[2] <- 'P1 loading'
@@ -404,22 +416,23 @@ server <- function(input, output,session){
   
   
   #to view biomarkers
-  observeEvent(input$biomarkers_gp1, {
-    biomarkers_gp1$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
-    
+  observeEvent(input$oplsda_no_norm, {
+    biomarkers_gp1_no_norm$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+    biomarkers_gp1_no_norm$df <- biomarkers_gp1_no_norm$df[, -c(2)]
   })
   
   pos_load_no_norm <- reactiveValues()
   
-  observeEvent(input$biomarkers_gp2, {
+  observeEvent(input$oplsda_no_norm, {
     pos_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 >= 0)
     names(pos_load_no_norm$df)[1] <- paste("Biomarkers for right hand group from scores plot")
     names(pos_load_no_norm$df)[2] <- 'P1 loading'
     names(pos_load_no_norm$df)[3] <- 'VIP'
   })
   
-  observeEvent(input$biomarkers_gp2, {
-    biomarkers_gp2$df <- as.data.frame(merge(pos_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+  observeEvent(input$oplsda_no_norm, {
+    biomarkers_gp2_no_norm$df <- as.data.frame(merge(pos_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+    biomarkers_gp2_no_norm$df <- biomarkers_gp2_no_norm$df[, -c(2)]
     
   })
   
@@ -472,9 +485,9 @@ server <- function(input, output,session){
   biomarkers_gp2 <- reactiveValues()
   neg_load_norm <- reactiveValues()
   
-  observeEvent(input$biomarkers_gp1,{
+  observeEvent(input$oplsda_norm,{
     neg_load_norm$df <- subset(top_500_marker_norm(), top_500_marker_norm()$p1 <= 0)
-    names(neg_load_norm$df)[1] <- paste("Biomarkers for",head(samp_colour()))
+    names(neg_load_norm$df)[1] <- paste("Biomarkers for left hand group from scores plot")
     names(neg_load_norm$df)[2] <- 'P1 loading'
     names(neg_load_norm$df)[3] <- 'VIP'
     neg_load_norm$df
@@ -482,29 +495,32 @@ server <- function(input, output,session){
   
   
   #to view biomarkers
-  observeEvent(input$biomarkers_gp1, {
+  observeEvent(input$oplsda_norm, {
     biomarkers_gp1$df <- as.data.frame(merge(neg_load_norm$df,all_names(), by.x = 1, by.y = 1))
-    
+    biomarkers_gp1$df <- biomarkers_gp1$df[, -c(2)]
   })
   
   pos_load_norm <- reactiveValues()
   
-  observeEvent(input$biomarkers_gp2, {
+  observeEvent(input$oplsda_norm, {
     pos_load_norm$df <- subset(top_500_marker_norm(), top_500_marker_norm()$p1 >= 0)
-    names(pos_load_norm$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
+    names(pos_load_norm$df)[1] <- paste("Biomarkers for right hand group from scores plot")
     names(pos_load_norm$df)[2] <- 'P1 loading'
     names(pos_load_norm$df)[3] <- 'VIP'
     
   })
   
-  observeEvent(input$biomarkers_gp2, {
+  observeEvent(input$oplsda_norm, {
     biomarkers_gp2$df <- as.data.frame(merge(pos_load_norm$df,all_names(), by.x = 1, by.y = 1))
-    
+    biomarkers_gp2$df <- biomarkers_gp2$df[, -c(2)]
   })
   
   
   
   #Printing biomarkers on the page
+  output$biomarkers_gp1_no_norm <-DT::renderDataTable(biomarkers_gp1_no_norm$df, rownames= FALSE)
+  output$biomarkers_gp2_no_norm <-DT::renderDataTable(biomarkers_gp2_no_norm$df, rownames= FALSE)
+  
   output$biomarkers_gp1 <-DT::renderDataTable(biomarkers_gp1$df, rownames= FALSE)
   output$biomarkers_gp2 <-DT::renderDataTable(biomarkers_gp2$df, rownames= FALSE)
   
