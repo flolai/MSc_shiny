@@ -28,7 +28,7 @@ ui <- fluidPage(
              fixedPanel(includeMarkdown("My First Shiny App.md"), 
                         right = 800),
              
-              
+             
              fileInput(inputId = "metadata",
                        label = "metabolomics data in csv format",
                        multiple = TRUE,
@@ -75,43 +75,43 @@ ui <- fluidPage(
                tags$hr(),
                actionButton("do_norm", "Click to merge omics data - log2 normalisation"),
                tags$hr(),
-               actionButton("autoscale_no_norm", "Click to autoscaling merged data set - no normalisation"),
+               actionButton("pca_full_scores", "Click to autoscaling merged data set - no normalisation"),
                tags$hr(),
-               actionButton("autoscale_log2", "Click to autoscaling log2 normalised merged data set")
+               actionButton("PCA_log2_scores", "Click to autoscaling log2 normalised merged data set")
                
              ),
              mainPanel(
-               actionButton("pca_full_scores", "PCA for autoscaled data"),
-               actionButton("PCA_log2_scores", "PCA for log2, autoscaled data"),
-               
-               fluidRow(
-                 column(width = 4, 
-                        h4("PCA scores plot for non normalised data"),
-                        plotOutput("pca_full_nice")), 
-                 column(width = 4, 
-                        h4("PCA loadings plot for non normalised data"),
-                        girafeOutput("pca_full_loadings")),     
-                        
-                 column(width =2 ,
-                        h4("Selected genes and metabolites"),
-                        DT::dataTableOutput("datatab")),
+               conditionalPanel(
+                 condition = ("input.pca_full_scores != 0"),
+                 fluidRow(
+                   column(width = 4, 
+                          h4("PCA scores plot for non normalised data"),
+                          plotOutput("pca_full_nice")), 
+                   column(width = 4, 
+                          h4("PCA loadings plot for non normalised data"),
+                          girafeOutput("pca_full_loadings")),     
+                   
+                   column(width =2 ,
+                          h4("Selected genes and metabolites"),
+                          DT::dataTableOutput("datatab")),
+                 )
+                 ),
+                 conditionalPanel(
+                 condition = ("input.do_norm != 0"),
+                 fluidRow(
+                   column(width = 4, 
+                          h4("PCA scores plot for normalised data"),
+                          plotOutput("pca_log2_nice")), 
+                   column(width = 4, 
+                          h4("PCA loadings plot for normalised data"),
+                          girafeOutput("pca_log2_loadings")),     
+                   
+                   column(width =2 ,
+                          h4("Selected genes and metabolites"),
+                          DT::dataTableOutput("datatab_log2")),
+                 )
                ),
-               
-               fluidRow(
-                 column(width = 4, 
-                        h4("PCA scores plot for normalised data"),
-                        plotOutput("pca_log2_nice")), 
-                 column(width = 4, 
-                        h4("PCA loadings plot for normalised data"),
-                        girafeOutput("pca_log2_loadings")),     
-                 
-                 column(width =2 ,
-                        h4("Selected genes and metabolites"),
-                        DT::dataTableOutput("datatab_log2")),
-               ),
-               
-               
-               
+   
                actionButton("oplsda_no_norm", "OPLS-DA model for not normalised data"),
                actionButton("oplsda_norm", "OPLS-DA model for normalised data"),
                
@@ -241,7 +241,7 @@ server <- function(input, output,session){
   
   autoscale_full <- reactiveValues()
   
-  observeEvent(input$autoscale_no_norm, {
+  observeEvent(input$pca_full_scores, {
     merge_full$df[is.na(merge_full$df)] <- 0.001
     autoscale_full$df<-scale(merge_full$df, center = TRUE, scale = TRUE)
     autoscale_full$df[is.na(autoscale_full$df)] <- 0.001
@@ -251,7 +251,7 @@ server <- function(input, output,session){
   
   autoscale_log2_full <- reactiveValues()
   
-  observeEvent(input$autoscale_log2, {
+  observeEvent(input$PCA_log2_scores, {
     rownames(log2_full$df)<- log2_full$df[,1]
     autoscale_log2_full$df<-scale(log2_full$df[,-1], center = TRUE, scale = TRUE)
     autoscale_log2_full$df[is.na(autoscale_log2_full$df)] <- 0.001
@@ -272,36 +272,36 @@ server <- function(input, output,session){
       pca_full_load<-as.data.frame(getLoadingMN(pca_full()))
       pca_full_load$label <- row.names(pca_full_load)  
       pca_full_loadings <- ggplot(pca_full_load) + geom_point_interactive(aes(x=p1,y=p2), size=3, tooltip=pca_full_load$label,
-                                  data_id = pca_full_load$label)
+                                                                          data_id = pca_full_load$label)
       pca_full_loadings <- girafe(ggobj = pca_full_loadings, options = list(opts_zoom(max = 5)))
       
       pca_full_loadings <- girafe_options(pca_full_loadings,
                                           options = list(
                                             opts_selection(type = "multiple", css = "fill:red;stroke:gray;r:5pt;")
-                                            )
                                           )
+      )
       pca_full_loadings
     }) 
-  
+    
   })  
   
   observeEvent(input$reset, {
     session$sendCustomMessage(type = 'pca_full_loadings_set', message = character(0))
   })
-   
+  
   selected_marks <- reactive({
     input$pca_full_loadings_selected
   })
   
   output$datatab <- DT::renderDataTable({options = list(scrollX = TRUE)
-    marks <- as.data.frame(row.names(getLoadingMN(pca_full())))
-    #out <- marks[marks[c(1)] %in% selected_marks(),]
-    out <- as.data.frame(selected_marks())
-    names(out)[1] <- paste("Selected")
-    #out <- marks
-    #if( nrow(out) < 1 ) return(NULL)
-    #row.names(out) <- NULL
-    out
+  marks <- as.data.frame(row.names(getLoadingMN(pca_full())))
+  #out <- marks[marks[c(1)] %in% selected_marks(),]
+  out <- as.data.frame(selected_marks())
+  names(out)[1] <- paste("Selected")
+  #out <- marks
+  #if( nrow(out) < 1 ) return(NULL)
+  #row.names(out) <- NULL
+  out
   })
   
   #PCA for log2 normalalised data
@@ -342,14 +342,14 @@ server <- function(input, output,session){
   })
   
   output$datatab_log2 <- DT::renderDataTable({options = list(scrollX = TRUE)
-    marks <- as.data.frame(row.names(getLoadingMN(PCA_log2())))
-    out <- as.data.frame(selected_marks_log2())
-    names(out)[1] <- paste("Selected")
-
-    out
+  marks <- as.data.frame(row.names(getLoadingMN(PCA_log2())))
+  out <- as.data.frame(selected_marks_log2())
+  names(out)[1] <- paste("Selected")
+  
+  out
   })
   
-  oplsda_no_norm <- reactive(opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100))
+  oplsda_no_norm <- reactive(opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA ,permI = 100))
   
   #adding OPLS-DA scores plot and permutation test
   observeEvent(input$oplsda_no_norm, {
@@ -394,34 +394,34 @@ server <- function(input, output,session){
   biomarkers_gp2 <- reactiveValues()
   neg_load_no_norm <- reactiveValues()
   
-#  observeEvent(input$biomarkers_gp1,{
-#    neg_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 <= 0)
-#    names(neg_load_no_norm$df)[1] <- paste("Biomarkers for",head(samp_colour()))
-#    names(neg_load_no_norm$df)[2] <- 'P1 loading'
-#    names(neg_load_no_norm$df)[3] <- 'VIP'
-#    neg_load_no_norm$df
-#  })
+  observeEvent(input$biomarkers_gp1,{
+    neg_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 <= 0)
+    names(neg_load_no_norm$df)[1] <- paste("Biomarkers for left hand group from scores plot")
+    names(neg_load_no_norm$df)[2] <- 'P1 loading'
+    names(neg_load_no_norm$df)[3] <- 'VIP'
+    neg_load_no_norm$df
+  })
   
   
   #to view biomarkers
-#  observeEvent(input$biomarkers_gp1, {
-#    biomarkers_gp1$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+  observeEvent(input$biomarkers_gp1, {
+    biomarkers_gp1$df <- as.data.frame(merge(neg_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
     
-#  })
+  })
   
   pos_load_no_norm <- reactiveValues()
   
-#  observeEvent(input$biomarkers_gp2, {
-#    pos_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 >= 0)
-#    names(pos_load_no_norm$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
-#    names(pos_load_no_norm$df)[2] <- 'P1 loading'
-#    names(pos_load_no_norm$df)[3] <- 'VIP'
-#  })
+  observeEvent(input$biomarkers_gp2, {
+    pos_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 >= 0)
+    names(pos_load_no_norm$df)[1] <- paste("Biomarkers for right hand group from scores plot")
+    names(pos_load_no_norm$df)[2] <- 'P1 loading'
+    names(pos_load_no_norm$df)[3] <- 'VIP'
+  })
   
-#  observeEvent(input$biomarkers_gp2, {
-#    biomarkers_gp2$df <- as.data.frame(merge(pos_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
+  observeEvent(input$biomarkers_gp2, {
+    biomarkers_gp2$df <- as.data.frame(merge(pos_load_no_norm$df,all_names(), by.x = 1, by.y = 1))
     
-#  })
+  })
   
   
   #normalised section
@@ -463,7 +463,7 @@ server <- function(input, output,session){
   
   
   
-  #formatting potential biomarker data for potential export - normalised data
+  #  formatting potential biomarker data for potential export - normalised data
   marker_norm <- reactive(as.data.frame(merge(getLoadingMN(oplsda_norm()),(getVipVn(oplsda_norm())), by.x = 0, by.y = 0))) 
   order_vip_norm <- reactive({marker_norm()[order(marker_norm()$y, decreasing=TRUE), ]})
   top_500_marker_norm <- reactive(order_vip_norm()[1:500,])
@@ -494,7 +494,7 @@ server <- function(input, output,session){
     names(pos_load_norm$df)[1] <- paste("Biomarkers for",tail(samp_colour()))
     names(pos_load_norm$df)[2] <- 'P1 loading'
     names(pos_load_norm$df)[3] <- 'VIP'
-  
+    
   })
   
   observeEvent(input$biomarkers_gp2, {
