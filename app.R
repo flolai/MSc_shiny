@@ -17,7 +17,7 @@ ui <- fluidPage(
                         
              ),  
              fixedPanel(includeMarkdown("My First Shiny App.md"), 
-                        right = 800),
+                        right = 50),
              
              
              fileInput(inputId = "metadata",
