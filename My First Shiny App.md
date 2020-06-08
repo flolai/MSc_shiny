@@ -11,12 +11,14 @@ The app itself is relatively self explainatory, but there are some simple rule (
 3. For both transcriptomics and metabolomics data set, please ensure sample names are in rows, genes and compound ID as columns. Example files can be downloaded together with the APP and example snapshots are listed below.
 
 ### Example transcriptomics data showing samples names in rows and genes in columns (same for metabolomics)
-![image](https://github.com/flolai/MSc_shiny/blob/master/app_graphics/ngs_sheet.png?raw=true)
+![image](https://raw.githubusercontent.com/flolai/MSc_shiny/master/app_graphics/ngs_sheet.png)
 
 ### Example transcriptomics gene identifier file (same for metabolomics)
 ![image](https://github.com/flolai/MSc_shiny/blob/master/app_graphics/ngs_name.png?raw=true)
 Add csv file
 add sample details
-brief explaination of wht to expect
+brief explaination of what to expect
 
 Need to add titles to plot and instruction in usage
+
+
