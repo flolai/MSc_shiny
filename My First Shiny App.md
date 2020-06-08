@@ -5,7 +5,9 @@ The app itself is relatively self explainatory, but there are some simple rule (
 1. Please make sure sample naming convention is consistance across transcriptomics and metabolomics data set
 2. Please make sure you have a unique identifier for your gene name and metabolomics name (You can use gene name and compound name directly, providing they are unique)
 3. For both transcriptomics and metabolomics data set, please ensure sample names are in rows, genes and compound ID as columns. Example files can be downloaded together with the APP and example snapshots are listed below.
+4. User data can be either pre-normalised before data input or to use the log2 normalisation methos available.
 
+**Please be patient, large data set (over 10000 genes and metabolites) may take a few minutes to generate the plot. If you are in a rush, basic model graphic will be display in your rstudio plot section.**
 
 ### Example transcriptomics data showing samples names in rows and genes in columns (same for metabolomics)
 ```sh
@@ -28,10 +30,14 @@ gene_Y880_RS28945	yccS
 gene_Y880_RS01650	ybgC
 ```
 
-Add csv file
-add sample details
-brief explaination of what to expect
+### The statistics
+There are two models that can be computed using this app. The first model is Principal component analysis (PCA). Both PCA scores and loading will be displayed[1]. 
 
-Need to add titles to plot and instruction in usage
+
+
+
+
+Reference:
+[1]Thevenot EA, Roux A, Xu Y, Ezan E, Junot C (2015). “Analysis of the human adult urinary metabolome variations with age, body mass index and gender by implementing a comprehensive workflow for univariate and OPLS statistical analyses.” Journal of Proteome Research, 14, 3322-3335. http://pubs.acs.org/doi/full/10.1021/acs.jproteome.5b00354.
 
 
