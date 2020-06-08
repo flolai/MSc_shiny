@@ -33,11 +33,12 @@ gene_Y880_RS01650	ybgC
 ### The statistics
 There are two models that can be computed using this app. The first model is Principal component analysis (PCA). Both PCA scores and loading will be displayed[1]. 
 
-
+![image](https://github.com/flolai/MSc_shiny/blob/master/app_graphics/PCA.png?raw=true)
 
 
 
 Reference:
+
 [1]Thevenot EA, Roux A, Xu Y, Ezan E, Junot C (2015). “Analysis of the human adult urinary metabolome variations with age, body mass index and gender by implementing a comprehensive workflow for univariate and OPLS statistical analyses.” Journal of Proteome Research, 14, 3322-3335. http://pubs.acs.org/doi/full/10.1021/acs.jproteome.5b00354.
 
 
