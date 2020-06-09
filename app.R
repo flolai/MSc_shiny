@@ -1,3 +1,5 @@
+#This is a R shiny app for data integration of transcriptomics and metabolomics data set
+#Author: Florence Lai 2020
 
 if(!require('pacman'))install.packages('pacman')
 pacman::p_load(shiny,dplyr,reshape,plotly,tidyverse,ggiraph, gridExtra)
@@ -10,13 +12,18 @@ ui <- fluidPage(
   titlePanel("TMMS-GUI: Transcriptmics, metabolomics multivatiate statistical analysis GUI"),
   
   tabsetPanel(
+    
+    #First tab to read multiple user CSV input of data, which include
+    #metabolomics data, transcriptomics data, compound name and gene name all in csv format    
+    
     tabPanel("Data Input",
              tags$style(type="text/css",
-                        ".shiny-output-error { visibility: hidden; }",
-                        #".shiny-output-error:before { visibility: hidden; }"
+                        #".shiny-output-error { visibility: hidden; }",
+                        ".shiny-output-error:after { visibility: hidden; }"
                         
              ),  
-             fluidRow(column(width = 2, 
+             fluidRow(column(width = 2,
+                             tags$hr(),
                              fileInput(inputId = "metadata",
                                        label = "metabolomics data in csv format",
                                        multiple = TRUE,
@@ -45,7 +52,15 @@ ui <- fluidPage(
              
     ),
     
+    #Second tab to read sample information (e.g treated/control) and provide user with choice of normalisation or not
+    #PCA scores plot and loadings plot will be generated. Loading plot have options to select clustered genes and metabolites
+    #selected genes and metabolites will be displayed in GUI
+    #OPLS-DA
+    
     tabPanel("Plots",
+             tags$hr(),
+             sidebarPanel(
+               width = 3,
              fileInput(inputId = "samp_detail",
                        label = "Sample details in csv format",
                        multiple = TRUE,
@@ -56,20 +71,17 @@ ui <- fluidPage(
                             choices = NULL,
                             options = list(placeholder = 'Select from below'),
                             multiple = FALSE),
-             
-             
-             sidebarPanel(
-               
                tags$hr(),
-               actionButton("do", "Click to merge omics data - no log2 normalisation"),
+               actionButton("do", "Merging omics data - no log2 normalisation"),
                tags$hr(),
-               actionButton("pca_full_scores", "Click to autoscaling merged data set - no normalisation"),
+               actionButton("pca_full_scores", "Autoscale merged data, not normalised"),
                tags$hr(),
                actionButton("oplsda_no_norm", "OPLS-DA model for not normalised data"),
+               
                tags$hr(),
-               actionButton("do_norm", "Click to merge omics data - log2 normalisation"),
+               actionButton("do_norm", "Merging omics data - log2 normalisation"),
                tags$hr(),
-               actionButton("PCA_log2_scores", "Click to autoscaling log2 normalised merged data set"),
+               actionButton("PCA_log2_scores", "Autoscale merged data, log2 normalised data set"),
                tags$hr(),
                actionButton("oplsda_norm", "OPLS-DA model for normalised data"),
                tags$hr(),
@@ -91,9 +103,9 @@ ui <- fluidPage(
                  )
                ),
                conditionalPanel(
-                 condition = ("input.do_norm != 0"),
+                 condition = ("input.PCA_log2_scores != 0"),
                  fluidRow(
-                   column(width = 4, 
+                   column(width = 5, 
                           h4("PCA scores plot for normalised data"),
                           plotOutput("pca_log2_nice")), 
                    column(width = 4, 
@@ -137,14 +149,23 @@ ui <- fluidPage(
     ),
     tabPanel("Biomarkers",
              mainPanel( 
+               tags$hr(),
+               conditionalPanel(
+                 condition = ("input.oplsda_no_norm != 0"),
+                 downloadButton("download_gp1_no_norm", "Download group 1 genes and metabolites"),
+                 downloadButton("download_gp2_no_norm", "Download group 2 genes and metabolites"),
+               ),
+               conditionalPanel(
+                 condition = ("input.oplsda_norm != 0"),
+                 downloadButton("download_gp1", "Download group 1 genes and metabolites"),
+                 downloadButton("download_gp2", "Download group 2 genes and metabolites"),
+               ),
                tags$hr(),             
                DT::dataTableOutput("biomarkers_gp1_no_norm"),
                DT::dataTableOutput("biomarkers_gp2_no_norm"),
                DT::dataTableOutput("biomarkers_gp1"),
                DT::dataTableOutput("biomarkers_gp2"),
-               
-               downloadButton("downloadData", "Download"),
-             )
+             ),
     )
   )
 )
@@ -266,7 +287,8 @@ server <- function(input, output,session){
   
   observeEvent(input$PCA_log2_scores, {
     rownames(log2_full$df)<- log2_full$df[,1]
-    autoscale_log2_full$df<-scale(log2_full$df[,-1], center = TRUE, scale = TRUE)
+    log2_full$df <- log2_full$df[,-1]
+    autoscale_log2_full$df<-scale(log2_full$df, center = TRUE, scale = TRUE)
     autoscale_log2_full$df[is.na(autoscale_log2_full$df)] <- 0.001
   })
   
@@ -298,22 +320,21 @@ server <- function(input, output,session){
     
   })  
   
-  observeEvent(input$reset, {
-    session$sendCustomMessage(type = 'pca_full_loadings_set', message = character(0))
-  })
   
   selected_marks <- reactive({
+    if (is.null(input$pca_full_loadings_selected)){
+      return(print('Please select genes and metabolite'))
+  }
     input$pca_full_loadings_selected
+  
   })
+  
+  
   
   output$datatab <- DT::renderDataTable({options = list(scrollX = TRUE)
   marks <- as.data.frame(row.names(getLoadingMN(pca_full())))
-  #out <- marks[marks[c(1)] %in% selected_marks(),]
   out <- as.data.frame(selected_marks())
   names(out)[1] <- paste("Selected")
-  #out <- marks
-  #if( nrow(out) < 1 ) return(NULL)
-  #row.names(out) <- NULL
   out
   })
   
@@ -346,13 +367,15 @@ server <- function(input, output,session){
   })
   
   
-  observeEvent(input$reset, {
-    session$sendCustomMessage(type = 'pca_log2_loadings_set', message = character(0))
+  selected_marks_log2 <- reactive({
+    if (is.null(input$pca_log2_loadings_selected)){
+      return(print('Please select genes and metabolite'))
+    }
+    input$pca_log2_loadings_selected
+    
   })
   
-  selected_marks_log2 <- reactive({
-    input$pca_log2_loadings_selected
-  })
+  
   
   output$datatab_log2 <- DT::renderDataTable({options = list(scrollX = TRUE)
   marks <- as.data.frame(row.names(getLoadingMN(PCA_log2())))
@@ -525,12 +548,39 @@ server <- function(input, output,session){
   output$biomarkers_gp1 <-DT::renderDataTable(biomarkers_gp1$df, rownames= FALSE)
   output$biomarkers_gp2 <-DT::renderDataTable(biomarkers_gp2$df, rownames= FALSE)
   
-  output$downloadData <- downloadHandler(
+  output$download_gp1_no_norm <- downloadHandler(
+    filename = function() {
+      paste(input$biomarkers_gp1_no_norm, ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(biomarkers_gp1_no_norm$df, file, row.names = FALSE)
+    }
+  )
+  
+  output$download_gp2_no_norm <- downloadHandler(
+    filename = function() {
+      paste(input$biomarkers_gp2_no_norm, ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(biomarkers_gp2_no_norm$df, file, row.names = FALSE)
+    }
+  )
+  
+  output$download_gp1 <- downloadHandler(
     filename = function() {
       paste(input$biomarkers_gp1, ".csv", sep = "")
     },
     content = function(file) {
       write.csv(biomarkers_gp1$df, file, row.names = FALSE)
+    }
+  )
+  
+  output$download_gp2 <- downloadHandler(
+    filename = function() {
+      paste(input$biomarkers_gp2, ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(biomarkers_gp2$df, file, row.names = FALSE)
     }
   )
   
