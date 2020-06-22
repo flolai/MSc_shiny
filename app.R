@@ -338,6 +338,8 @@ server <- function(input, output,session){
   out
   })
   
+  
+  
   #PCA for log2 normalalised data
   
   PCA_log2 <- reactive(opls(autoscale_log2_full$df,scaleC= "none"))
