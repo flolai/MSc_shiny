@@ -1,0 +1,13 @@
+Sample_name,Sample_type,replication,Time_point,Treated_Control,Treatment_Control
+P6.1.1.P,P6,1,1,Treated,PMB4
+P6.1.4.P,P6,1,4,Treated,PMB4
+P6.2.1.P,P6,2,1,Treated,PMB4
+P6.2.4.P,P6,2,4,Treated,PMB4
+P6.3.1.P,P6,3,1,Treated,PMB4
+P6.3.4.P,P6,3,4,Treated,PMB4
+PAK.1.1.P,PAK,1,1,Treated,PMB4
+PAK.1.4.P,PAK,1,4,Treated,PMB4
+PAK.2.1.P,PAK,2,1,Treated,PMB4
+PAK.2.4.P,PAK,2,4,Treated,PMB4
+PAK.3.1.P,PAK,3,1,Treated,PMB4
+PAK.3.4.P,PAK,3,4,Treated,PMB4
