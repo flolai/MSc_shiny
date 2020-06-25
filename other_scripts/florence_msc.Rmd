@@ -1,0 +1,143 @@
+---
+title: "Florence_MSc_project"
+author: "IN"
+date: "22/06/2020"
+output: html_document
+---
+
+```{r session setup, include=FALSE}
+
+library(rtracklayer)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(PCAtools)
+library(DESeq2)
+
+options(stringsAsFactors = FALSE)
+
+```
+
+```{r pca_analysis_on_transcriptomic_data_only}
+df.t <- read.table(file="SOME_DIRECTORY/ngs_full_set.csv", header=TRUE, as.is = TRUE, sep=",")
+colnames <- df.t[,2]
+df.t <- df.t[,-1]
+df.t <- df.t[,-1]
+
+df.t <- t(df.t)
+df.t <- df.t[,1:42]
+
+
+colnames(df.t) <- colnames[1:42]
+
+
+metadata <- read.csv(file="SOME_DIRECTORY/samplelist_edited.csv", header=TRUE)
+metadata <- metadata[1:89,]
+rownames(metadata) <- metadata[,2]
+metadata.sub <- subset(metadata, metadata$Sample_name %in% colnames(df.t))
+metadata.sub$replication <- as.factor(metadata.sub$replication)
+metadata.sub$Time_point <- as.factor(metadata.sub$Time_point)
+
+#order the metadata in the order of the columns in NGS counts
+metadata.sub <- metadata.sub[match(colnames(df.t), metadata.sub$Sample_name),]
+rownames(metadata.sub) == colnames(df.t)
+
+dds = DESeqDataSetFromMatrix(countData = df.t, 
+                             colData = metadata.sub, 
+                             design = ~ Sample_type +Time_point + Treated_Control )
+
+keep <- rowSums(counts(dds)) >= 10
+dds <- dds[keep,]
+dds
+
+quantile(rowSums(counts(dds)))
+
+vsd <- vst(dds, blind=TRUE)
+rld <- rlog(dds, blind=TRUE)
+plotPCA(rld, intgroup=c("Time_point", "Treated_Control")) #DESeq2's pca plot
+
+p<- pca(assay(vsd), metadata=metadata.sub)
+
+biplot(p, colby="Sample_type")
+
+biplot(p, colby="Treated_Control",  shape="Time_point")
+biplot(p, shape="Treated_Control",  colby="Time_point")
+
+pairsplot(p, shape="Treated_Control",  colby="Time_point" )
+
+p<- pca(assay(rld), metadata=metadata.sub)
+
+biplot(p, colby="Sample_type")
+
+biplot(p, colby="Treated_Control",  shape="Time_point")
+biplot(p, shape="Treated_Control",  colby="Time_point")
+
+pairsplot(p, shape="Treated_Control",  colby="Time_point" )
+pairsplot(p, shape="Time_point",  colby="replication" )
+pairsplot(p, shape="Treated_Control",  colby="replication" )
+
+#look at 24 hours only
+df.24 <- df.t[,grep("-24-", colnames(df.t))] 
+metadata.24 <- metadata.sub[grep("-24-", rownames(metadata.sub)),]
+rownames(metadata.24) == colnames(df.24)
+
+dds.24 = DESeqDataSetFromMatrix(countData = df.24, 
+                             colData = metadata.24, 
+                             design = ~ Sample_type + Treated_Control )
+keep <- rowSums(counts(dds.24)) >= 10
+dds.24 <- dds.24[keep,]
+dds.24
+
+vsd.24 <- vst(dds.24, blind=TRUE)
+p.24<- pca(assay(vsd.24), metadata=metadata.24)
+biplot(p.24, colby="Treated_Control",  shape="Sample_type")
+#notice the batch effect of replication
+biplot(p.24, colby="replication",  shape="Sample_type")
+
+df.1 <- df.t[,grep("[PAK|P6]-.-1-", colnames(df.t))] 
+metadata.1 <- metadata.sub[grep("[PAK|P6]-.-1-", rownames(metadata.sub)),]
+rownames(metadata.1) == colnames(df.1)
+
+dds.1 = DESeqDataSetFromMatrix(countData = df.1, 
+                             colData = metadata.1, 
+                             design = ~ Sample_type + Treated_Control )
+keep <- rowSums(counts(dds.1)) >= 10
+dds.1 <- dds.1[keep,]
+dds.1
+
+vsd.1 <- vst(dds.1, blind=TRUE)
+p.1<- pca(assay(vsd.1), metadata=metadata.1)
+biplot(p.1, colby="Treated_Control",  shape="Sample_type")
+#no obvious batch effect of replicationin first two PCs but possibly in PC3
+pairsplot(p.1, colby="replication",  shape="Time_point" )
+biplot(p.1, colby="replication",  shape="Sample_type")
+#good separation of both P6/PAK and Control/P
+biplot(p.1, colby="Treated_Control",  shape="Sample_type")
+
+df.4 <- df.t[,grep("[PAK|P6]-.-4-", colnames(df.t))] 
+metadata.4 <- metadata.sub[grep("[PAK|P6]-.-4-", rownames(metadata.sub)),]
+rownames(metadata.4) == colnames(df.4)
+
+dds.4 = DESeqDataSetFromMatrix(countData = df.4, 
+                             colData = metadata.4, 
+                             design = ~ Sample_type + Treated_Control )
+keep <- rowSums(counts(dds.4)) >= 10
+dds.4 <- dds.4[keep,]
+dds.4
+
+vsd.4 <- vst(dds.4, blind=TRUE)
+p.4<- pca(assay(vsd.4), metadata=metadata.4)
+biplot(p.4, colby="Treated_Control",  shape="Sample_type")
+#no obvious batch effect of replicationin first two PCs but possibly in PC3
+pairsplot(p.4, colby="replication",  shape="Time_point" )
+biplot(p.4, colby="replication",  shape="Sample_type")
+#good separation of both P6/PAK and Control/P
+biplot(p.4, colby="Treated_Control",  shape="Sample_type")
+
+```
+
+## Session information
+```{r session_info}
+sessionInfo()
+#save.image(file="neurexin_analysis.Rdata")
+```
