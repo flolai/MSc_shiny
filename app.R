@@ -152,13 +152,13 @@ ui <- fluidPage(
                tags$hr(),
                conditionalPanel(
                  condition = ("input.oplsda_no_norm != 0"),
-                 downloadButton("download_gp1_no_norm", "Download group 1 genes and metabolites"),
-                 downloadButton("download_gp2_no_norm", "Download group 2 genes and metabolites"),
+                 downloadButton("download_gp1_no_norm", "Download group 1 (left) genes and metabolites"),
+                 downloadButton("download_gp2_no_norm", "Download group 2 (right) genes and metabolites"),
                ),
                conditionalPanel(
                  condition = ("input.oplsda_norm != 0"),
-                 downloadButton("download_gp1", "Download group 1 genes and metabolites"),
-                 downloadButton("download_gp2", "Download group 2 genes and metabolites"),
+                 downloadButton("download_gp1", "Download group 1 (left) genes and metabolites"),
+                 downloadButton("download_gp2", "Download group 2 (right) genes and metabolites"),
                ),
                tags$hr(),             
                DT::dataTableOutput("biomarkers_gp1_no_norm"),
@@ -299,7 +299,7 @@ server <- function(input, output,session){
     output$pca_full_nice <- renderPlot({
       pca_full_scores<- as.data.frame(getScoreMN(pca_full()))
       pca_full_nice<- ggplot(pca_full_scores,aes(x=p1,y=p2, label = row.names(pca_full_scores), colour = as.character(samp_colour())))
-      pca_full_nice<- pca_full_nice + geom_point(position = position_nudge(y = -1.5)) + geom_text(size = 3)+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
+      pca_full_nice<- pca_full_nice + geom_point(position = position_nudge(y = -1.8)) + geom_text(size = 3)+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
       pca_full_nice
     })
     
@@ -347,7 +347,7 @@ server <- function(input, output,session){
     output$pca_log2_nice <- renderPlot({
       PCA_log2_scores<- as.data.frame(getScoreMN(PCA_log2()))
       pca_log2_nice<- ggplot(PCA_log2_scores,aes(x=p1,y=p2, label = row.names(PCA_log2_scores), colour = as.character(samp_colour())))
-      pca_log2_nice<- pca_log2_nice + geom_point(position = position_nudge(y = -1.5)) + geom_text(size = 3)+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
+      pca_log2_nice<- pca_log2_nice + geom_point(position = position_nudge(y = -1.8)) + geom_text(size = 3)+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
       pca_log2_nice
     })
     
@@ -395,7 +395,7 @@ server <- function(input, output,session){
       oplsda_no_norm_out<- as.data.frame(merge(getScoreMN(oplsda_no_norm()),(getScoreMN(oplsda_no_norm(), orthoL = TRUE)), by.x = 0, by.y = 0))
       oplsda_no_norm_label <- as.data.frame(getScoreMN(oplsda_no_norm()))
       oplsda_no_norm_out<-ggplot(oplsda_no_norm_out,aes(x=p1,y=o1, label = row.names(oplsda_no_norm_label),colour = as.character(samp_colour())))
-      oplsda_no_norm_out<-oplsda_no_norm_out + geom_text(size = 3) + geom_point(position = position_nudge(y = -1.5))+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
+      oplsda_no_norm_out<-oplsda_no_norm_out + geom_text(size = 3) + geom_point(position = position_nudge(y = -1.8))+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
       oplsda_no_norm_out
       
     })
@@ -472,7 +472,7 @@ server <- function(input, output,session){
       oplsda_norm_out<- as.data.frame(merge(getScoreMN(oplsda_norm()),(getScoreMN(oplsda_norm(), orthoL = TRUE)), by.x = 0, by.y = 0))
       oplsda_norm_label <- as.data.frame(getScoreMN(oplsda_norm()))
       oplsda_norm_out<-ggplot(oplsda_norm_out,aes(x=p1,y=o1,label = row.names(oplsda_norm_label), colour = as.character(samp_colour())))
-      oplsda_norm_out<-oplsda_norm_out +geom_point(position = position_nudge(y = -1.5))+ geom_text(size = 3) + theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
+      oplsda_norm_out<-oplsda_norm_out +geom_point(position = position_nudge(y = -1.8))+ geom_text(size = 3) + theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = input$samp_colour)
       oplsda_norm_out
       
     })

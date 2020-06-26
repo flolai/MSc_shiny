@@ -29,8 +29,10 @@ ngs <- read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_react
 
 meta_no_24 <- meta_log[-(grep('24', row.names(meta_log))),]
 meta_no_24 <- meta_no_24[-(grep('QC', row.names(meta_no_24))),]
+meta_no_24 <- meta_no_24[-(grep('0', row.names(meta_no_24))),]
 
 ngs_no_24 <- ngs[-(grep('24', row.names(ngs))),]
+ngs_no_24 <- ngs[-(grep('0', row.names(ngs))),]
 
 P6_meta <- meta_no_24[(grep('P6', row.names(meta_no_24))),]
 P6_ngs <- ngs_no_24[(grep('P6', row.names(ngs_no_24))),]
