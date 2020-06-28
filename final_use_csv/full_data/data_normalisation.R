@@ -6,7 +6,7 @@ count[count==0.001]<- 0
 
 library("DESeq2")
 
-samp_info <- as.matrix(read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/final_use_csv/full_data/samplelist.csv', row.names = 1))
+samp_info <- as.matrix(read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/samplelist.csv', row.names = 1))
 
 all(rownames(samp_info) %in% colnames(count))         
 count <- count[, rownames(samp_info)]
@@ -32,13 +32,16 @@ meta_no_24 <- meta_no_24[-(grep('QC', row.names(meta_no_24))),]
 meta_no_24 <- meta_no_24[-(grep('0', row.names(meta_no_24))),]
 
 ngs_no_24 <- ngs[-(grep('24', row.names(ngs))),]
-ngs_no_24 <- ngs[-(grep('0', row.names(ngs))),]
+ngs_no_24 <- ngs_no_24[-(grep('0', row.names(ngs_no_24))),]
 
 P6_meta <- meta_no_24[(grep('P6', row.names(meta_no_24))),]
 P6_ngs <- ngs_no_24[(grep('P6', row.names(ngs_no_24))),]
 
 PAK_meta <- meta_no_24[(grep('PAK', row.names(meta_no_24))),]
+
 PAK_ngs <- ngs_no_24[(grep('PAK', row.names(ngs_no_24))),]
+
+
 
 treated_meta <- meta_no_24[-(grep('C', row.names(meta_no_24))),]
 treated_meta <- treated_meta[-(grep('0', row.names(treated_meta))),]

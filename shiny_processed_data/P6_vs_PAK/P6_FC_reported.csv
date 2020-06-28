@@ -1,0 +1,16 @@
+"Biomarkers.for.left.hand.group.from.scores.plot","VIP","Name","apply(all, 1, wilcoxtest, grp1 = c(1:21), grp2 = c(22:42))","p6_FC - pak_FC"
+"p4309",3.94,"S-Adenosylmethioninamine",1.75E-06,27.6
+"pos_144",3.09,"1-Hexadecylamine",4.3E-07,9.6
+"gene.Y880_RS22365",4.52,"speD",3.12E-08,7.49
+"gene.Y880_RS21265",4.56,"rtcA",3.07E-08,6.09
+"gene.Y880_RS20075",4.32,"feoB",3.12E-08,5.76
+"gene.Y880_RS22390",3.95,"cueR",2.86E-07,1.87
+"pos_606",1.89,"Vinyl acetic acid",0.00672,1.34
+"pos_332",1.68,"Uric acid",0.0195,1.31
+"pos_848",1.9,"Acetone cyanohydrin",0.00672,1.26
+"neg_256",1.7,"Chloroacetaldehyde",0.0257,1.19
+"gene.Y880_RS01205",1.8,"acs",0.102,1.16
+"pos_91",1.85,"D-2-Aminobutyric acid",0.0079,1.08
+"gene.Y880_RS18700",1.9,"hpaB",0.0426,1.06
+"pos_1249",1.61,"Uracil",0.0224,1.03
+"pos_1385",2.1,"Glucaric acid lactone",0.0034,1.02

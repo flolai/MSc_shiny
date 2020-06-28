@@ -426,14 +426,14 @@ server <- function(input, output,session){
   #formatting potential biomarker data for potential export
   marker_no_norm <- reactive(as.data.frame(merge(getLoadingMN(oplsda_no_norm()),(getVipVn(oplsda_no_norm())), by.x = 0, by.y = 0))) 
   order_vip_no_norm <- reactive({marker_no_norm()[order(marker_no_norm()$y, decreasing=TRUE), ]})
-  top_500_marker_no_norm <- reactive(order_vip_no_norm()[1:500,])
+  top_marker_no_norm <- reactive(order_vip_no_norm()[1:1000,])
   
   biomarkers_gp1_no_norm <- reactiveValues()
   biomarkers_gp2_no_norm <- reactiveValues()
   neg_load_no_norm <- reactiveValues()
   
   observeEvent(input$oplsda_no_norm,{
-    neg_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 <= 0)
+    neg_load_no_norm$df <- subset(top_marker_no_norm(), top_marker_no_norm()$p1 <= 0)
     names(neg_load_no_norm$df)[1] <- paste("Biomarkers for left hand group from scores plot")
     names(neg_load_no_norm$df)[2] <- 'P1 loading'
     names(neg_load_no_norm$df)[3] <- 'VIP'
@@ -450,7 +450,7 @@ server <- function(input, output,session){
   pos_load_no_norm <- reactiveValues()
   
   observeEvent(input$oplsda_no_norm, {
-    pos_load_no_norm$df <- subset(top_500_marker_no_norm(), top_500_marker_no_norm()$p1 >= 0)
+    pos_load_no_norm$df <- subset(top_marker_no_norm(), top_marker_no_norm()$p1 >= 0)
     names(pos_load_no_norm$df)[1] <- paste("Biomarkers for right hand group from scores plot")
     names(pos_load_no_norm$df)[2] <- 'P1 loading'
     names(pos_load_no_norm$df)[3] <- 'VIP'
@@ -505,14 +505,14 @@ server <- function(input, output,session){
   #  formatting potential biomarker data for potential export - normalised data
   marker_norm <- reactive(as.data.frame(merge(getLoadingMN(oplsda_norm()),(getVipVn(oplsda_norm())), by.x = 0, by.y = 0))) 
   order_vip_norm <- reactive({marker_norm()[order(marker_norm()$y, decreasing=TRUE), ]})
-  top_500_marker_norm <- reactive(order_vip_norm()[1:500,])
+  top_marker_norm <- reactive(order_vip_norm()[1:1000,])
   
   biomarkers_gp1 <- reactiveValues()
   biomarkers_gp2 <- reactiveValues()
   neg_load_norm <- reactiveValues()
   
   observeEvent(input$oplsda_norm,{
-    neg_load_norm$df <- subset(top_500_marker_norm(), top_500_marker_norm()$p1 <= 0)
+    neg_load_norm$df <- subset(top_marker_norm(), top_marker_norm()$p1 <= 0)
     names(neg_load_norm$df)[1] <- paste("Biomarkers for left hand group from scores plot")
     names(neg_load_norm$df)[2] <- 'P1 loading'
     names(neg_load_norm$df)[3] <- 'VIP'
@@ -529,7 +529,7 @@ server <- function(input, output,session){
   pos_load_norm <- reactiveValues()
   
   observeEvent(input$oplsda_norm, {
-    pos_load_norm$df <- subset(top_500_marker_norm(), top_500_marker_norm()$p1 >= 0)
+    pos_load_norm$df <- subset(top_marker_norm(), top_marker_norm()$p1 >= 0)
     names(pos_load_norm$df)[1] <- paste("Biomarkers for right hand group from scores plot")
     names(pos_load_norm$df)[2] <- 'P1 loading'
     names(pos_load_norm$df)[3] <- 'VIP'

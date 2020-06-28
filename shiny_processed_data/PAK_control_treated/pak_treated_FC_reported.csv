@@ -1,0 +1,29 @@
+"Biomarkers.for.right.hand.group.from.scores.plot","VIP","Name","apply(PAK_samp_list, 1, wilcoxtest, grp1 = c(1:6), grp2 = c(7:12))","pak_control_FC - pak_treated_FC"
+"gene.Y880_RS23515",2.41,"asnB",2.16E-03,-4.03
+"neg_167",2.34,"DIBEKACIN",2.16E-03,-3.56
+"gene.Y880_RS09130",2.33,"msuE",4.70E-03,-10.8
+"pos_144",2.31,"1-Hexadecylamine",2.16E-03,-8.29
+"gene.Y880_RS09125",2.23,"ssuD",4.77E-03,-4.75
+"gene.Y880_RS20075",2.12,"feoB",4.33E-03,-2.21
+"p3562",1.97,"sn-glycero-3-Phosphocholine",2.16E-03,-2.81
+"gene.Y880_RS13990",1.96,"edd",2.60E-02,-1.12
+"gene.Y880_RS15010",1.9,"phnF",7.58E-03,-2.88
+"p1199",1.89,"L-Arginine",4.33E-03,-1.15
+"gene.Y880_RS22365",1.87,"speD",2.16E-03,-3.56
+"gene.Y880_RS15015",1.87,"phnE",9.62E-03,-3.06
+"gene.Y880_RS13630",1.87,"leuC",1.52E-02,-2.27
+"gene.Y880_RS15020",1.86,"phnD",1.98E-02,-2.81
+"gene.Y880_RS15025",1.85,"phnC",8.13E-03,-1.45
+"gene.Y880_RS11615",1.8,"fadE",4.11E-02,-2.09
+"gene.Y880_RS04485",1.79,"gcl",4.46E-02,-1.12
+"gene.Y880_RS00345",1.78,"mmsA",2.60E-02,-1.22
+"gene.Y880_RS09495",1.76,"ppk2",2.60E-02,-2.38
+"gene.Y880_RS13925",1.73,"zwf",9.31E-02,-1.12
+"n1771",1.73,"D-Gluconic acid",2.60E-02,-1.09
+"gene.Y880_RS27285",1.72,"guaD",4.11E-02,-1.43
+"gene.Y880_RS06460",1.72,"modA",4.92E-03,-1.25
+"gene.Y880_RS13625",1.67,"leuD",2.60E-02,-1.53
+"gene.Y880_RS00965",1.61,"plcR",3.67E-02,-1.29
+"gene.Y880_RS14985",1.59,"phnK",3.57E-02,-1.95
+"gene.Y880_RS17165",1.57,"leuA",4.11E-02,-1.01
+"gene.Y880_RS26370",1.56,"dksA",4.35E-02,-1.73

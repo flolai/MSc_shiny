@@ -1,0 +1,19 @@
+"Biomarkers.for.right.hand.group.from.scores.plot","VIP","Name","apply(no_24_samp_list, 1, wilcoxtest, grp1 = c(1:12), grp2 = c(13:24))","control_FC - treated_FC"
+"gene.Y880_RS23515",3.62,"asnB",7.40E-07,-3.66
+"gene.Y880_RS09130",3.54,"msuE",3.44E-05,-5.91
+"gene.Y880_RS09125",3.40,"ssuD",3.33E-05,-4.29
+"p3562",3.09,"sn-glycero-3-Phosphocholine",7.40E-07,-2.09
+"gene.Y880_RS13630",1.89,"leuC",2.42E-02,-2.01
+"gene.Y880_RS15015",1.88,"phnE",1.72E-02,-1.00
+"pos_144",1.86,"1-Hexadecylamine",5.97E-02,-3.64
+"gene.Y880_RS15020",1.81,"phnD",1.50E-02,-1.38
+"neg_920",1.77,"Ipecac (Protoemetine)",2.05E-02,-1.12
+"gene.Y880_RS27285",1.74,"guaD",6.84E-02,-1.00
+"gene.Y880_RS15010",1.74,"phnF",4.27E-02,-1.08
+"gene.Y880_RS26370",1.72,"dksA",2.80E-02,-1.00
+"gene.Y880_RS17920",1.68,"tauB",1.58E-02,-1.03
+"gene.Y880_RS13625",1.55,"leuD",4.96E-02,-1.17
+"gene.Y880_RS15025",1.54,"phnC",4.92E-02,-1.00
+"p2076",1.53,"4-Imidazolone-5-propanoate",4.49E-02,-1.03
+"gene.Y880_RS11615",1.51,"fadE",1.01E-01,-1.79
+"gene.Y880_RS09495",1.49,"ppk2",5.28E-02,-2.00

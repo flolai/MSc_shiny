@@ -1,0 +1,66 @@
+"Biomarkers.for.right.hand.group.from.scores.plot","VIP","Name","apply(all, 1, wilcoxtest, grp1 = c(1:21), grp2 = c(22:42))","p6_FC - pak_FC"
+"p5682",3.11,"PC(33:0)",1.42E-04,-24.38
+"pos_233",3.09,"1-(6-[5]-ladderane-hexanoyl)-2-(8-[3]-ladderane-octanyl)-sn-glycerophosphocholine",1.06E-05,-1.01
+"n3016",3.03,"[PA(16:0/18:2(9Z,12Z))] 1-hexadecanoyl-2-(9Z,12Z-octadecadienoyl)-sn-glycero-3-phosphate",4.18E-06,-1.55
+"gene.Y880_RS25460",2.94,"pstA",5.16E-04,-2.02
+"pos_508",2.91,"C17 Sphinganine",3.79E-05,-2.55
+"n3122",2.85,"Glycerol 1-(9Z-octadecenoate) 2-tetradecanoate 3-phosphate",1.06E-05,-1.23
+"pos_1063",2.81,".beta.-Peltatin, 3'-demethoxy-O-methyl-",9.39E-05,-3.62
+"p2906",2.69,"5'-Methylthioadenosine",1.20E-04,-2.65
+"gene.Y880_RS15925",2.67,"pfkB",2.33E-03,-1.78
+"p1914",2.53,"Met-Trp-Asp",2.75E-04,-2.05
+"n2251",2.53,"PG(36:1)",1.53E-03,-27.71
+"p1637",2.52,"[SP (17:0)] heptadecasphinganine",4.79E-04,-2.03
+"p2060",2.49,"S-Adenosyl-L-methionine",1.12E-04,-3.46
+"gene.Y880_RS25450",2.46,"phoU",3.11E-03,-1.07
+"p3675",2.46,"ubiquinone-7",6.59E-04,-1.59
+"neg_52",2.42,"Suvorexant",6.59E-04,-2.12
+"pos_192",2.38,"Ala Cys Phe Gln",7.32E-04,-2.11
+"p2873",2.33,"DG(36:4)",2.84E-03,-2.49
+"pos_375",2.29,"PE(20:0/22:1(13Z))",1.06E-04,-2.11
+"p339",2.25,"[PC(14:0/18:0)] 1-tetradecanoyl-2-octadecanoyl-sn-glycero-3-phosphocholine",1.22E-03,-1.85
+"pos_1026",2.24,"Hydrazinecarbothioamide, N-methyl-2-[(5-nitro-2-thienyl)methylene]-",2.84E-03,-2.12
+"pos_547",2.22,"Potassium 2-(1&#39;-ethoxy) ethoxypropanoate",2.60E-03,-2.31
+"pos_399",2.21,"COUMARINIC ACID METHYL ETHER",3.72E-03,-2.29
+"n967",2.19,"PG(16:0/16:0)",2.16E-03,-1.53
+"p328",2.13,"S-Decyl GSH",4.48E-02,-27.02
+"p4315",2.05,"DG(14:0/20:4(5Z,8Z,11Z,14Z)/0:0)",5.70E-03,-1.14
+"pos_627",2,"3R-aminononanoic acid",2.40E-02,-1.58
+"p3684",1.99,"Cycloartanyl ferulate",9.26E-03,-1.42
+"n2896",1.96,"PE(16:0/14:1(9Z))",1.08E-02,-1.02
+"neg_437",1.94,"HEPTAMINOL",1.69E-02,-1.71
+"pos_490",1.93,"4-hydroxy-valeric acid",2.75E-02,-1.67
+"pos_1074",1.91,"Ile Glu Tyr Cys Lys",1.26E-02,-1.43
+"pos_329",1.91,"Methylphenidate",9.26E-03,-2.92
+"gene.Y880_RS27670",1.88,"madL",3.21E-03,-1.06
+"pos_904",1.88,"ETHOXYQUIN",1.82E-02,-1.38
+"neg_385",1.88,"2-Methylerythritol",2.75E-02,-1.68
+"pos_798",1.83,"11-dehydro-2,3-dinor Thromboxane B2",8.55E-03,-1.13
+"gene.Y880_RS06495",1.79,"acpP",2.51E-02,-1.03
+"pos_1030",1.79,"&beta;-ethyl acrylic acid",2.57E-02,-1.34
+"neg_412",1.79,"Epibatidine",3.15E-02,-4.43
+"pos_949",1.77,"Bis (2-hydroxypropyl) amine",3.58E-02,-1.19
+"neg_187",1.76,"3-HYDROXY-4-(SUCCIN-2-YL)-CARYOLANE delta-LACTONE",6.98E-02,-4.51
+"pos_790",1.71,"Benzenesulfonamide, N,N,4-trimethyl-3-nitro-",6.59E-02,-3.39
+"pos_945",1.71,"Danshensu sodium salt",2.57E-02,-5.1
+"n660",1.7,"Cys-Phe-Gly-Pro",8.26E-02,-4.03
+"pos_680",1.69,"N-Guanylhistamine",4.61E-02,-1.16
+"gene.Y880_RS00965",1.67,"plcR",4.23E-02,-1.17
+"pos_448",1.67,"2,3-Dimethylsuccinic acid",3.36E-02,-4.14
+"neg_532",1.66,"NO-711 hydrochloride",3.82E-02,-4.3
+"pos_425",1.65,"Bikojic acid",1.69E-02,-2.14
+"pos_327",1.64,"Digitoxic acid",6.98E-02,-4.82
+"pos_62",1.64,"Mannitol",7.39E-02,-4.94
+"pos_1414",1.63,"s-Triazine, 2-amino-4-morpholino-",5.53E-02,-3.57
+"pos_987",1.61,"PGF2&alpha;-11-acetate",1.95E-02,-1.11
+"neg_149",1.61,"D-Mannitol",7.81E-02,-5.25
+"pos_1006",1.61,"Tulobuterol hydrochloride",5.21E-02,-5.36
+"gene.Y880_RS21090",1.6,"pilV",7.82E-02,-1.14
+"neg_417",1.6,"9H-Purine-6-thiol, 9-(tetrahydro-2-furyl)-",7.81E-02,-4.24
+"n2001",1.59,"Asp-Met-Phe-Gly",2.54E-03,-1.95
+"pos_795",1.58,"Muconic dialdehyde",1.02E-01,-2.97
+"pos_385",1.56,"6-hydroxy-2-hexynoic acid",1.08E-01,-2.56
+"pos_957",1.55,"HYMECHROME",8.26E-02,-1.46
+"neg_130",1.5,"Gly Lys Lys Pro",4.61E-02,-1.46
+"pos_922",1.5,"L-beta-aspartyl-L-threonine",9.72E-02,-3.48
+"pos_778",1.49,"Tetradecylamine",5.53E-02,-1.11
