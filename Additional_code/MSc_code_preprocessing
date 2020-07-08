@@ -1,0 +1,278 @@
+#Code documentation for MSc project : A processing pipeline for integration of metabolomics and transcriptomics data
+
+
+# Transcriptomics part:
+
+#Step 1: Obtaining data:
+
+#The ngs raw files were downloaded from the EBI website: https://www.ebi.ac.uk/ena/data/view/PRJNA491816
+
+#Use of linux terminal to download data from the EBI website
+
+awk '{ print "ftp://"$0}' PRJNA491816.txt > link.txt
+
+#Step 2: Check NGS data quality
+
+# Using fastqc for quality control, followed by multiqc for easy summarisation across multiple samples
+
+module load fastqc
+#!/bin/bash
+# Runs FASTQC on all fastq.gz files found in given directory
+# Run as:
+# ./run_fastqc dir_of_fastq_files
+FASTQC_DIR="fastqc"
+fastqc_data="/d/projects/u/lc001/fastqc"
+echo "Running FASTQC using executable: $FASTQC_DIR"
+for fastq_file in $1/*.fastq.gz;
+do
+echo "Fastq file: $fastq_file"
+$FASTQC_DIR $fastq_file -o $fastqc_data .
+Done
+
+#MultiQC was then used to summarise all of the fastqc files
+
+module load python/v3
+multiqc /d/projects/u/lc001/final_project/fastqc
+
+#Step 3: Trimming of potential adaptors and polyA tails using Trimmomatic for single end reads
+
+#!/bin/bash
+# Runs Trimmomatic in SE mode for all sample names given as arguments
+# Run as:
+# ./run_trimmomatic.sh directory_of_samples list_of_samples
+timestamp=`date "+%Y%m%d-%H%M%S"`
+logfile="run_$timestamp.log"
+exec > $logfile 2>&1 #all output will be logged to logfile
+TRIM_EXEC="/d/in7/s/trimmomatic/Trimmomatic-0.32/trimmomatic-0.32.jar"
+DIR=$1
+echo "Running Trimmomatic using executable: $TRIM_EXEC"for fastq_file in $1/*;
+do
+echo "Fastq file: $fastq_file"
+java -jar $TRIM_EXEC SE -threads 8 -phred33 \
+-trimlog "$fastq_file"_trim_report.txt \
+"$fastq_file" \
+"$fastq_file"_trimmed.fastq.gz \
+ILLUMINACLIP:/d/in7/s/trimmomatic/Trimmomatic-0.32/adapters/TruSeq2and3-SE.fa:2:30:10 \
+LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+# gzip "$sample"_trim_report.txt
+done
+./run_trimmomatic.sh /d/projects/u/lc001/data/
+
+#After trimming, fastqc and multiqc were repeated to check after trimming quality. (repeat of step 2)
+
+#Step 4: Alignment of all reads to reference genome using Rsubread, reference genome from https://www.ncbi.nlm.nih.gov/nuccore/CP020659.1
+
+#Building of index (in R)
+
+library(Rsubread)
+faFile <- "/d/projects/u/lc001/genome/PAK_sequence.fasta"
+buildindex(basename="PAK",reference = faFile)
+annotation_file<- list.files( "/d/projects/u/lc001/genome/", pattern =".gff3$", full.names = TRUE)
+
+#align fastq files
+
+fastq.files <- list.files(path = "/d/projects/u/lc001/trimmed/", pattern = ".fastq.gz$", full.names = TRUE)
+align(index="PAK",useAnnotation = TRUE, annot.ext =annotation_file, isGTF = TRUE, GTF.featureType ="gene",GTF.attrType = "ID", readfile1=fastq.files)
+
+#Step 5: FeatureCount in RSubread
+
+Bam_files <- list.files("/d/projects/u/lc001/aligned/", pattern = ".*BAM$", full.names = TRUE)
+Annotation_file <- list.files( "/d/projects/u/lc001/genome/", pattern =".gff3$", full.names = TRUE)
+fc<-featureCounts(bam_files, annot.ext =annotation_file,isGTFAnnotationFile = TRUE,GTF.featureType = "gene", GTF.attrType ="ID", isPairedEnd = FALSE)
+write.table(x=data.frame(fc$annotation[,c("GeneID","Length")],fc$counts,stringsAsFactors=FALSE), file="/d/projects/u/lc001/aligned/counts.txt",quote=FALSE,sep="\t",row.names=FALSE)
+
+sessionInfo()
+R version 3.5.2 (2018-12-20)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: CentOS Linux 7 (Core)
+
+Matrix products: default
+BLAS: /usr/lib64/libblas.so.3.4.2
+LAPACK: /usr/lib64/liblapack.so.3.4.2
+
+locale:
+[1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C               LC_TIME=en_GB.UTF-8       
+[4] LC_COLLATE=en_GB.UTF-8     LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+[7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] Rsubread_1.32.4
+
+loaded via a namespace (and not attached):
+[1] compiler_3.5.2 tools_3.5.2   
+
+#Step 6: NGS data table manipulation before statistical analysis
+
+library(rtracklayer)
+library(dplyr)
+
+ngs<- read.csv("/home/florence/Documents/Bioinformatics_MSc/Project/raw_ngs/counts.txt", sep = "", row.names = 1)
+ngs <- ngs[ , -which(names(ngs) %in% c("Length"))]
+names(ngs) <- gsub(pattern = "X.d.projects.u.lc001.aligned.", replacement = "", x = names(ngs))
+names(ngs) <- gsub(pattern = ".fastq.gz_trimmed.fastq.gz.subread.BAM", replacement = "", x = names(ngs))
+ngs_sample<- read.csv("/home/florence/Documents/Bioinformatics_MSc/Project/raw_ngs/RNA_seq_sample_name.txt", sep = "\t")
+Sample_name<- as.data.frame(gsub("Illumina HiSeq 1500 sequencing; RNA-Seq of P. aeruginosa: ", "\\1", ngs_sample$experiment_title))
+colnames(Sample_name)<- c("Sample_name")
+Sample_name<- as.data.frame(gsub("AKpmrB", "\\1", Sample_name$Sample_name))
+colnames(Sample_name)<- c("Sample_name")
+Sample_name<- as.data.frame(gsub("h", "\\1", Sample_name$Sample_name))
+colnames(Sample_name)<- c("Sample_name")
+
+name<- Sample_name %>% separate(Sample_name, c("a", "b","c", "d"))
+Sample_name<- unite(name, "samp", c("a", "d", "b", "c"), sep = ".")
+Sample_name<- as.data.frame(gsub("NA.", "\\1", Sample_name$samp))
+colnames(Sample_name)<- c("Sample_name")
+ngs_sample <-cbind(ngs_sample, Sample_name)
+
+#export ngs_sample for minor manual fix of sample name inconsistancy
+write.csv(ngs_sample, '/home/florence/Documents/Bioinformatics_MSc/Project/final_use_csv/ngs_sample_temp.csv', row.names = FALSE)
+ngs_sample <- read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/final_use_csv/ngs_sample_temp.csv')
+ngs<- t(ngs)
+ngs<- merge(ngs_sample, ngs, by.x = "run_accession", by.y = 0)
+ngs <- ngs[ , -which(names(ngs) %in% c("run_accession"))]
+ngs[ngs == 0] <- 0.001
+
+
+write.csv(ngs, '/home/florence/Documents/Bioinformatics_MSc/Project/final_use_csv/ngs_count.csv', row.names = FALSE)
+
+gff<-readGFF("/home/florence/Documents/Bioinformatics_MSc/Project/raw_ngs/PAK_annotation.gff3", version=3)
+ngs_ID<-as.data.frame(gff)
+ngs_ID <- ngs_ID[ , which(names(ngs_ID) %in% c("ID", "Name", "gene"))]
+
+write.csv(ngs_ID, '/home/florence/Documents/Bioinformatics_MSc/Project/final_use_csv/ngs_gene_name.csv', row.names = FALSE)
+
+
+
+# Processing of metabolomics data:
+
+#Step 1: Metabolomics data were downloaded from Metabolights wwbsite : https://www.ebi.ac.uk/metabolights/MTBLS751
+
+#Step 2: Data conversion using proteowizard mzconvert on Wondows 7 
+
+"C:\Program Files\ProteoWizard 3.0.19166.cc86d1f56 64-bit\msconvert.exe" "M:\Laboratory\KNIME
+Workflows\MSc_paper_data\*.raw" --mzXML --zlib --filter "peakPicking true 1" --filter
+"polarity positive" -o "M:\Laboratory\KNIME Workflows\MSc_hilic\centroid_pos"
+
+"C:\Program Files\ProteoWizard 3.0.19166.cc86d1f56 64-bit\msconvert.exe" "M:\Laboratory\KNIME
+Workflows\MSc_paper_data\*.raw" --mzXML --zlib --filter "peakPicking true 1" --filter
+"polarity negative" -o "M:\Laboratory\KNIME Workflows\MSc_hilic\centroid_neg"
+
+#Step 3: Using xcms online for metabolomics feature detection and annotation
+
+#Feature detection:
+
+method = centwave
+ppm = 10
+minimum peak width = 20
+maximun peak width = 100
+Signal/Noise threshold = 10
+mzdiff = 0.001
+Integration method = 1
+prefilter peaks = 10
+prefilter intensity = 100000
+Noise filter = 10000
+
+#Retention time correction
+
+method = peakgroups
+missing = 1
+non-linear/linear alignment = loess
+extra = 1
+ignore sample class = TRUE
+bw = 5
+mzwid = 0.05
+minfrac = 0.9
+minsamp = 1
+family = gaussian
+span = 0.7
+
+#Annotation
+
+search for = isotopes + adducts
+ppm = 10
+m/z = 0.015
+
+\subsection{Identification}
+
+ppm = 10
+adducts - positive ion mode = [M+H]+, [M+Na]+
+adducts - negative ion mode = [M-H]-, [M+Fa-H]-
+
+
+#Step 4: Metabolomics data table manipulation before statistical analysis
+
+library(tidyr)
+
+neg_comp_name<- read.delim('/home/florence/Documents/Bioinformatics_MSc/Project/raw_file_meta/XCMS_online_neg/results/report_1395910.tsv', header = TRUE, sep = '\t')
+PeakID <-sprintf("neg_%d",neg_comp_name$featureidx)
+neg_comp_name<-cbind(PeakID,neg_comp_name)
+neg_area<- read.delim('/home/florence/Documents/Bioinformatics_MSc/Project/raw_file_meta/XCMS_online_neg/results/XCMS.annotated.Report_1395910.tsv', header = TRUE, sep = '\t')
+neg_area<- cbind(PeakID, neg_area)
+neg_area<- neg_area[-c(2:12)]
+neg_area <- neg_area[ , -which(names(neg_area) %in% c("isotopes","adduct", "pcgroup"))]
+rownames(neg_area)<- neg_area$PeakID
+neg_area<- t(neg_area)
+neg_comp_name <-separate(neg_comp_name, col = METLIN, , into = c("ppm", "Putative.metabolite"), sep = "::")
+neg_comp_name <-neg_comp_name[ , which(names(neg_comp_name) %in% c("PeakID","mzmed","rtmed","Putative.metabolite"))]
+
+
+
+pos_comp_name<- read.delim('/home/florence/Documents/Bioinformatics_MSc/Project/raw_file_meta/XCMS_online_pos/report_1395904.tsv', header = TRUE, sep = '\t')
+PeakID<-sprintf("pos_%d",pos_comp_name$featureidx)
+pos_comp_name<-cbind(PeakID,pos_comp_name)
+pos_area<- read.delim('/home/florence/Documents/Bioinformatics_MSc/Project/raw_file_meta/XCMS_online_pos/XCMS.annotated.Report_1395904.tsv', header = TRUE, sep = '\t')
+pos_area<- cbind(PeakID, pos_area)
+pos_area<- pos_area[-c(2:12)]
+pos_area <- pos_area[ , -which(names(pos_area) %in% c("isotopes","adduct", "pcgroup"))]
+rownames(pos_area)<- pos_area$PeakID
+pos_area<- t(pos_area)
+pos_comp_name <-separate(pos_comp_name, col = METLIN, , into = c("ppm", "Putative.metabolite"), sep = "::")
+pos_comp_name <-pos_comp_name[ , which(names(pos_comp_name) %in% c("PeakID","mzmed","rtmed","Putative.metabolite"))]
+
+meta_area <- cbind(neg_area, pos_area)
+meta_comp_name <- rbind(neg_comp_name, pos_comp_name)
+names(meta_comp_name)[names(meta_comp_name) == "mzmed"] <- "Mass"
+names(meta_comp_name)[names(meta_comp_name) == "rtmed"] <- "RT"
+
+
+lip<- read.csv("/home/florence/Documents/Bioinformatics_MSc/Project/raw_file_meta/authors_lipid_data.csv", header = TRUE)
+rownames(lip)<- lip$PeakID
+
+lip_name <- lip[ , which(names(lip) %in% c("PeakID","Mass", "RT", "Putative.metabolite"))]
+
+lip_area<- t(lip[,-c(1:8)])
+tol_area<- merge(meta_area, lip_area, by.x = 0, by.y = 0)
+tol_area[tol_area == 0] <- 0.001
+names(tol_area)[names(tol_area) == "Row.names"] <- "Sample_name"
+comp_name <- rbind(meta_comp_name, lip_name)
+
+
+write.csv(tol_area, '/home/florence/Documents/Bioinformatics_MSc/Project/final_use_csv//meta_area.csv', row.names = FALSE)
+write.csv(comp_name, '/home/florence/Documents/Bioinformatics_MSc/Project/final_use_csv//meta_comp_name.csv', row.names = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
