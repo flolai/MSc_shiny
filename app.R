@@ -93,7 +93,7 @@ ui <- fluidPage(
                    column(width = 5, 
                           h4("PCA scores plot for non normalised data"),
                           plotOutput("pca_full_nice")), 
-                   column(width = 4, 
+                   column(width = 5, 
                           h4("PCA loadings plot for non normalised data"),
                           girafeOutput("pca_full_loadings")),     
                    
@@ -102,13 +102,14 @@ ui <- fluidPage(
                           DT::dataTableOutput("datatab")),
                  )
                ),
+               
                conditionalPanel(
                  condition = ("input.PCA_log2_scores != 0"),
                  fluidRow(
                    column(width = 5, 
                           h4("PCA scores plot for normalised data"),
                           plotOutput("pca_log2_nice")), 
-                   column(width = 4, 
+                   column(width = 5, 
                           h4("PCA loadings plot for normalised data"),
                           girafeOutput("pca_log2_loadings")),     
                    
