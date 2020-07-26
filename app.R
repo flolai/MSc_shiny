@@ -72,18 +72,14 @@ ui <- fluidPage(
                             options = list(placeholder = 'Select from below'),
                             multiple = FALSE),
                tags$hr(),
-               actionButton("do", "Merging omics data - no log2 normalisation"),
+               actionButton("pca_full_scores", "PCA for pre-normalised data"),
                tags$hr(),
-               actionButton("pca_full_scores", "Autoscale merged data, not normalised"),
-               tags$hr(),
-               actionButton("oplsda_no_norm", "OPLS-DA model for not normalised data"),
+               actionButton("oplsda_no_norm", "OPLS-DA model for pre-normalised data"),
                
                tags$hr(),
-               actionButton("do_norm", "Merging omics data - log2 normalisation"),
+               actionButton("PCA_log2_scores", "PCA for log2 normalised data"),
                tags$hr(),
-               actionButton("PCA_log2_scores", "Autoscale merged data, log2 normalised data set"),
-               tags$hr(),
-               actionButton("oplsda_norm", "OPLS-DA model for normalised data"),
+               actionButton("oplsda_norm", "OPLS-DA model for log2 normalised data"),
                tags$hr(),
              ),
              mainPanel(
@@ -262,14 +258,14 @@ server <- function(input, output,session){
   
   merge_full<- reactiveValues() 
   
-  observeEvent(input$do, {
+  observeEvent(input$pca_full_scores, {
     merge_full$df <- transform(merge(meta(), ngs(), by.x = 0, by.y = 0), row.names = Row.names, Row.names = NULL)# merging metabolomics
     #and ngs data by row names = sample name
   })
   
   log2_full <- reactiveValues()
   
-  observeEvent(input$do_norm, {
+  observeEvent(input$PCA_log2_scores, {
     log2_full$df <- transform(merge(log2(meta()), log2(ngs()), by.x = 0, by.y = 0, row.names = Row.names, Row.names = NULL)) #log2 normalisaion
   })
   
