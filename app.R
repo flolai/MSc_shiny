@@ -339,8 +339,6 @@ server <- function(input, output,session){
   out
   })
   
-  
-  
   #PCA for log2 normalalised data
   
   PCA_log2 <- reactive(opls(autoscale_log2_full$df,scaleC= "none"))
@@ -384,7 +382,6 @@ server <- function(input, output,session){
   marks <- as.data.frame(row.names(getLoadingMN(PCA_log2())))
   out <- as.data.frame(selected_marks_log2())
   names(out)[1] <- paste("Selected")
-  
   out
   })
   
