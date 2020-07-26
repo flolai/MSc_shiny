@@ -45,7 +45,7 @@ ui <- fluidPage(
                                        accept = c(".csv")),
              ),
              
-             column(width = 8,
+             column(width = 6,
                     (includeMarkdown("My First Shiny App.md"))
              )
              )
