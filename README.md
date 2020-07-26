@@ -21,9 +21,10 @@ BiocManager::install("ropls")
     
 ```    
 
-## PCA in TMMS-CUI
+### PCA in TMMS-CUI
 <img src="https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/plot_area_1.png?raw=true" width="600">
-## OPLS-DA in TMMS-GUI
+
+### OPLS-DA in TMMS-GUI
 <img src="https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/oplsda_plot_GUI.png?raw=true" width="600">
 
 
