@@ -35,7 +35,7 @@ gene_Y880_RS01650	ybgC
 There are two models that can be computed using this app. The first model is Principal component analysis (PCA) and Orthogonal Projections to Latent Structures Discriminant Analysis (OPLS-DA). Both of these model uses the ropls package in R[1]. A very good tutorial for using this package can be found here - https://www.bioconductor.org/packages/devel/bioc/vignettes/ropls/inst/doc/ropls-vignette.html (use of command line only)
 
 ## PCA
-![image](https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/plot_area_1.png?raw=true)
+![image](https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/plot_area_2.png?raw=true)
 
 A good explaination of PCA scores plot and loadings plot explaination can be found in the website below
 https://blog.umetrics.com/what-is-principal-component-analysis-pca-and-how-it-is-used
@@ -44,7 +44,8 @@ https://blog.bioturing.com/2018/06/18/how-to-read-pca-biplots-and-scree-plots
 Briefly, when a group of samples clustered together in a scores plot, it is likely that there are some similarities between them. In the example data above, on the left you have sample type P6 at different time points and different treatment so it make sense for them to be clustered together.  The positioning of genes and metabolites in the loadings plot correlates to the positioning of samples in the scores plot. As there are likely to be many variables in a multiomic dataset, the name/ID in the loadings plot will not be shown unless you hover over to that specific gene/metabolite. You can use the group selection settings (highlighted in red) available to select a section from the loadings plot and these can be copied to a text file or csv file for further interrogation if needed.
 
 ## OPLS-DA
-![image](https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/oplsda_plot_GUI.png?raw=true)
+![image](https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/oplsda_plot_GUI_2.png?raw=true)
+
 
 A very simple explaination of OPLS-Da model can be found in the link below
 https://blog.umetrics.com/explaining-differences-or-grouping-data-opls-da-vs-pca-data-analysis
