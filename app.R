@@ -2,7 +2,7 @@
 #Author: Florence Lai 2020
 
 if(!require('pacman'))install.packages('pacman')
-pacman::p_load(shiny,dplyr,reshape,plotly,tidyverse,ggiraph, gridExtra)
+pacman::p_load(shiny,dplyr,reshape,plotly,tidyverse,ggiraph, gridExtra, DT)
 
 library(ropls)
 citation("ropls")
