@@ -9,15 +9,9 @@
 ## Installation instruction:
 
 ```sh
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
 
-BiocManager::install("ropls")
-
- if (!requireNamespace('devtools', quietly = TRUE))
-        install.packages('devtools')
-
-    devtools::install_github('flolai/TMMS-GUI')
+install.packages("shiny")
+shiny::runGitHub("TMMS-GUI", "flolai")
     
 ```    
 
