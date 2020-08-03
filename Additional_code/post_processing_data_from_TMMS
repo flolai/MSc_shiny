@@ -52,3 +52,20 @@ names(meta_data)[2]<- paste('v2')
 names(gene_data)[2]<- paste('v2')
 final_data <- rbind (meta_data,gene_data)
 final_data <- na.omit(final_data)
+
+#additional code for metabolomics only P6 treated and control OPLS-DA - Scores and permutation in appendix section
+
+meta_p6 <- read_csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/P6_treated_control/P6_meta.csv')
+p6_samp <- read_csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/P6_treated_control/p6_samp.csv')
+names(meta_p6)[names(meta_p6) == "X1"] <- "sample"
+meta_p6_name <- meta_p6$sample
+meta_p6 <- meta_p6[,-c(1)]
+meta_p6 <-cbind(meta_p6_name, meta_p6)
+row.names(meta_p6) <- meta_p6[,c(1)]
+meta_p6 <- meta_p6[,-c(1)]
+meta_p6 <- meta_p6[-(grep('P6.4|P6.5', row.names(meta_p6))),]
+meta_p6 <- scale(meta_p6, center = TRUE, scale = TRUE)
+meta_p6[is.na(meta_p6)] <- 0.001
+meta_p6_oplsda <- opls(meta_p6 , p6_samp$Treated_Control,  scaleC= "none",  predI = 1, orthoI = NA ,permI = 100)
+plot(meta_p6_oplsda, typeVc = c('x-score', 'permutation'))
+

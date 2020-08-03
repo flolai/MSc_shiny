@@ -1,0 +1,129 @@
+# Code for individual Omic PCA
+
+library(dplyr)
+library(reshape)
+library(tidyverse)
+library(ropls)
+library(ggiraph)
+library(gridExtra)
+library(limma)
+
+meta <- read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/meta_log.csv', row.names = 1)
+samp_list <- read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/samplelist.csv', row.names = 1)
+comp_name<-read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/meta_comp_name.csv', header = FALSE)
+gene_name<-read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/ngs_gene_name.csv', header = FALSE)
+ngs <- read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/rlog_ngs.csv', row.names = 1)
+
+
+#PCA for transcriptomics only - all time points
+pca_ngs <- opls(ngs)
+ngs_scores <- as.data.frame(getScoreMN(pca_ngs))
+Time_point <- as.character(samp_list$Time_point)
+ngs_score_pt <- ggplot(ngs_scores,aes(x=p1,y=p2, label = row.names(ngs_scores), colour = Time_point))
+ngs_score_pt<- ngs_score_pt + geom_point(position = position_nudge(y = -1.5)) + geom_text(size = 3)+theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(fill = Time_point)
+ngs_score_pt
+
+#PCA - transcriptomics 24hrs
+
+ngs_24hr <- ngs[grep("24", row.names(ngs)),]
+pca_ngs_24hr <- opls(ngs_24hr)
+samp.24 <- samp_list[grep("24", row.names(samp_list)),]
+samp.24 <- samp.24[rownames(ngs_24hr),]
+pca_ngs_24hr_scores <- as.data.frame(getScoreMN(pca_ngs_24hr))
+pca_ngs_24hr_nice<- ggplot(pca_ngs_24hr_scores,aes(x=p1,y=p2, label = row.names(pca_ngs_24hr_scores), colour = samp.24$Sample_type))
+pca_ngs_24hr_nice<- pca_ngs_24hr_nice + geom_point(position = position_nudge(y = -1.5)) + geom_text(size = 3)+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = samp.24$Sample_type)
+pca_ngs_24hr_nice
+
+#using limma to remove batch effect
+
+#PCA - transcriptomics 24hrs, batch effect removed with limma 'removeBatchEffect' function
+
+#limma transformed data 24hr
+limma.ngs.24<- t(removeBatchEffect(x = t(ngs_24hr), batch = samp.24$replication))
+limma.ngs.24.pca <- opls(limma.ngs.24)
+limma.ngs.24.pca_scores <- as.data.frame(getScoreMN(limma.ngs.24.pca))
+limma.ngs.24.pca_nice<- ggplot(limma.ngs.24.pca_scores,aes(x=p1,y=p2, label = row.names(limma.ngs.24.pca_scores), colour = samp.24$Sample_type))
+limma.ngs.24.pca_nice<- limma.ngs.24.pca_nice + geom_point(position = position_nudge(y = -1.5), shape = samp.24$Treated_Control, size = 3) + geom_text(size = 5)+ theme(legend.position = "none") + labs(color = 'Sample type')
+limma.ngs.24.pca_nice
+
+
+#PCA - transcriptomics 1hr
+ngs_1hr <- ngs[grep("1.C|1.P", row.names(ngs)),]
+pca_ngs_1hr <- opls(ngs_1hr)
+samp.1 <- samp_list[grep("1.C|1.P", row.names(samp_list)),]
+samp.1 <- samp.1[rownames(ngs_1hr),]
+pca_ngs_1hr_scores <- as.data.frame(getScoreMN(pca_ngs_1hr))
+pca_ngs_1hr_nice<- ggplot(pca_ngs_1hr_scores,aes(x=p1,y=p2, label = row.names(pca_ngs_1hr_scores), colour = samp.1$Sample_type))
+pca_ngs_1hr_nice<- pca_ngs_1hr_nice + geom_point(position = position_nudge(y = -1.5),shape = samp.1$Treated_Control, size = 3) + geom_text(size = 5)+ theme(legend.position = "none")+ labs(colour = 'Sample type')
+pca_ngs_1hr_nice
+
+#PCA - transcriptomics 4hr
+ngs_4hr <- ngs[grep("4", row.names(ngs)),]
+ngs_4hr <- ngs_4hr[-grep("24", row.names(ngs_4hr)),]
+pca_ngs_4hr <- opls(ngs_4hr)
+samp.4 <- samp_list[grep("4", row.names(samp_list)),]
+samp.4 <- samp.4[-grep("24", samp.4$Time_point),]
+samp.4 <- samp.4[rownames(ngs_4hr),]
+pca_ngs_4hr_scores <- as.data.frame(getScoreMN(pca_ngs_4hr))
+pca_ngs_4hr<- ggplot(pca_ngs_4hr_scores,aes(x=p1,y=p2, label = row.names(pca_ngs_4hr_scores), colour = samp.4$Sample_type))
+pca_ngs_4hr<- pca_ngs_4hr + geom_point(position = position_nudge(y = -1.5)) + geom_text(size = 3)+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = 'Sample type')
+pca_ngs_4hr
+
+
+#PCA - transcriptomics 4hr - limma batch corrected
+
+limma.ngs_4hr<- t(removeBatchEffect(x = t(ngs_4hr), batch = samp.4$replication))
+limma.ngs_4hr.pca <- opls(limma.ngs_4hr)
+limma.ngs_4hr.pca_scores <- as.data.frame(getScoreMN(limma.ngs_4hr.pca))
+limma.ngs_4hr.pca_nice<- ggplot(limma.ngs_4hr.pca_scores,aes(x=p2,y=p3, label = row.names(limma.ngs_4hr.pca_scores), colour = samp.4$Sample_type))
+limma.ngs_4hr.pca_nice<- limma.ngs_4hr.pca_nice + geom_point(position = position_nudge(y = -1.5), shape = samp.4$Treated_Control, size = 3) + geom_text(size = 3)+ theme(legend.position = "none") + labs(color = 'Sample type')
+limma.ngs_4hr.pca_nice
+
+
+#metabolomics data, not including replicate 4 and 5 as these time points were not included in transcriptomics data
+
+meta <- meta[-grep("P6.4|P6.5|PAK.4|PAK.5|QC", row.names(meta)),]
+meta [meta  == -Inf] <- 0.001
+meta_pca <- opls(meta)
+pca_meta_scores <- as.data.frame(getScoreMN(meta_pca))
+samp_list <- samp_list[rownames(meta),]
+pca_meta_nice<- ggplot(pca_meta_scores,aes(x=p1,y=p2, label = row.names(pca_meta_scores), shape = samp_list$Treated_Control, colour = as.character(samp_list$Time_point)))
+pca_meta_nice<- pca_meta_nice + geom_point(position = position_nudge(y = -1.5), shape = samp_list$Treated_Control) + geom_text(size = 3)+ theme(legend.title= element_text(colour = 'black',face = 'bold')) + labs(color = 'Time point')
+pca_meta_nice
+
+#PCA metabolomics 1hr
+meta_1hr <- meta[grep("1.C|1.P", row.names(meta)),]
+pca_meta_1hr <- opls(meta_1hr)
+samp.1 <- samp_list[grep("1.C|1.P", row.names(samp_list)),]
+samp.1 <- samp.1[rownames(meta_1hr),]
+pca_meta_1hr_scores <- as.data.frame(getScoreMN(pca_meta_1hr))
+pca_meta_1hr_nice<- ggplot(pca_meta_1hr_scores,aes(x=p1,y=p2, label = row.names(pca_meta_1hr_scores), shape = samp.1$Treated_Control, colour = samp.1$Sample_type))
+pca_meta_1hr_nice<- pca_meta_1hr_nice + geom_point(position = position_nudge(y = -1.5), shape = samp.1$Treated_Control, size = 3) + geom_text(size = 5)+ theme(legend.position = "none") + labs(color = 'Sample type')
+pca_meta_1hr_nice
+
+
+#PCA metabolomics 4hr PC1/PC3
+meta_4hr <- meta[grep("4", row.names(meta)),]
+meta_4hr <- meta_4hr[-grep("24", row.names(meta_4hr)),]
+pca_meta_4hr <- opls(meta_4hr)
+samp.4 <- samp_list[grep("4", row.names(samp_list)),]
+samp.4 <- samp.4[-grep("24", samp.4$Time_point),]
+samp.4 <- samp.4[rownames(meta_4hr),]
+pca_meta_4hr_scores <- as.data.frame(getScoreMN(pca_meta_4hr))
+pca_meta_4hr_nice<- ggplot(pca_meta_4hr_scores,aes(x=p1,y=p3, label = row.names(pca_meta_4hr_scores), colour = samp.1$Sample_type))
+pca_meta_4hr_nice<- pca_meta_4hr_nice + geom_point(position = position_nudge(y = -1.5), shape = samp.4$Treated_Control, size = 3) + geom_text(size = 5)+ theme(legend.position = "none")+ labs(color = 'Sample type')
+pca_meta_4hr_nice
+
+#PCA metabolomics 24hr 
+
+meta_24hr <- meta[grep("24", row.names(meta)),]
+pca_meta_24hr <- opls(meta_24hr)
+samp.24 <- samp_list[grep("24", row.names(samp_list)),]
+samp.24 <- samp.24[rownames(meta_24hr),]
+pca_meta_24hr_scores <- as.data.frame(getScoreMN(pca_meta_24hr))
+pca_meta_24hr_nice<- ggplot(pca_meta_24hr_scores,aes(x=p1,y=p2, label = row.names(pca_meta_24hr_scores), colour = samp.24$Sample_type))
+pca_meta_24hr_nice<- pca_meta_24hr_nice + geom_point(position = position_nudge(y = -1.5), shape = samp.24$Treated_Control, size = 3) + geom_text(size = 5)+ theme(legend.position = "none") + labs(color = 'Sample type')
+pca_meta_24hr_nice
+
+
+

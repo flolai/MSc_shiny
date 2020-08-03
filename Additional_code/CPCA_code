@@ -1,0 +1,37 @@
+#CPCA data model for transcriptomics and metabolimics using mogsa pasckage in R
+
+meta <- read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/meta_log.csv', row.names = 1)
+samp_list <- read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/samplelist.csv', row.names = 1)
+comp_name<-read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/meta_comp_name.csv', header = FALSE)
+gene_name<-read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/ngs_gene_name.csv', header = FALSE)
+ngs <- read.csv('/home/florence/Documents/Bioinformatics_MSc/Project/shiny_reactive_MSc/final_use_csv/full_data/rlog_ngs.csv', row.names = 1)
+
+
+removing extra metabolomics samples as there are no sample belong to these time points in transcriptomics
+
+meta <- meta[-grep("P6.4|P6.5|PAK.4|PAK.5|QC", row.names(meta)),]
+meta [meta  == -Inf] <- 0.001
+
+#CPCA coding
+
+#CPCA scores plot
+
+library(mogsa)
+data_list <- append(list(t(meta)), list(t(ngs)))
+moa <- mbpca(data_list, ncomp = 3, k = "all", method = "blockScore", center=TRUE, scale=FALSE)
+plot(moa, value="eig", type=2)
+scr <- moaScore(moa)
+moa_scores<- as.data.frame(moa@fac.scr[, 1:2])
+Time_point <- as.character(samp_list$Time_point)
+mbpca_score <- ggplot(moa_scores,aes(x=PC1,y=PC2, label = row.names(moa_scores),colour = Time_point))
+mbpca_score <- mbpca_score + ggtitle("Consenus PCA scores plot") + geom_point(position = position_nudge(y = -1)) + geom_text(size = 3)+ theme(legend.title= element_text(colour = 'black',face = 'bold'))+ theme(plot.title = element_text(hjust = 0.5,size=22))
+mbpca_score
+
+#CPCA loadings plot
+
+moa_load <- as.data.frame(moa@loading[, 1:2])
+label <- gsub('_data_1', '', row.names(moa_load))
+label <- gsub('_data_2', '', label)
+mbpca_load <- ggplot(moa_load,aes(x=V1,y=V2, label = label))
+mbpca_load <-mbpca_load + geom_text(size = 3) + ggtitle("Consenus PCA loadings plot")+ geom_point(position = position_nudge(y = -0.007)) + geom_text(size = 3)+ theme(legend.position = "none")+ theme(legend.title= element_text(colour = 'black',face = 'bold'))+ theme(plot.title = element_text(hjust = 0.5,size=22))
+mbpca_load
