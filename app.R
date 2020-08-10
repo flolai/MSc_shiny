@@ -96,7 +96,9 @@ ui <- fluidPage(
                    column(width =2 ,
                           h4("Selected genes and metabolites"),
                           DT::dataTableOutput("datatab")),
-                 )
+                 ),
+               h6("PCA model P1 and P2 varance explained percentage"),
+               tableOutput("no_norm_PCA_R2X"),
                ),
                
                conditionalPanel(
@@ -112,7 +114,9 @@ ui <- fluidPage(
                    column(width =2 ,
                           h4("Selected genes and metabolites"),
                           DT::dataTableOutput("datatab_log2")),
-                 )
+                 ),
+                 h6("PCA model P1 and P2 varance explained percentage"),
+                 tableOutput("norm_PCA_R2X"),
                ),
                
                
@@ -335,6 +339,16 @@ server <- function(input, output,session){
   out
   })
   
+  
+  observeEvent(input$pca_full_scores, {
+    output$no_norm_PCA_R2X <- renderTable( rownames = FALSE, colnames = F,{
+      no_norm_PCA_R2X <- t(as.data.frame(pca_full()@modelDF[["R2X"]]*100)[c(1:2),])
+      no_norm_PCA_R2X <- cbind('Percentage of variance explained', no_norm_PCA_R2X)
+      no_norm_PCA_R2X <- rbind(cbind('', 'P1','P2'),no_norm_PCA_R2X)
+      no_norm_PCA_R2X
+    })
+  })
+  
   #PCA for log2 normalalised data
   
   PCA_log2 <- reactive(opls(autoscale_log2_full$df,scaleC= "none"))
@@ -380,6 +394,18 @@ server <- function(input, output,session){
   names(out)[1] <- paste("Selected")
   out
   })
+  
+  observeEvent(input$PCA_log2_scores, {
+    output$norm_PCA_R2X <- renderTable(rownames = FALSE, colnames = F,{
+      norm_PCA_R2X <- t(as.data.frame(PCA_log2()@modelDF[["R2X"]]*100)[c(1:2),])
+      norm_PCA_R2X <- cbind('Percentage of variance explained', norm_PCA_R2X)
+      norm_PCA_R2X <- rbind(cbind('', 'P1','P2'), norm_PCA_R2X)
+      norm_PCA_R2X
+    })
+  })
+  
+  
+  
   
   oplsda_no_norm <- reactive(opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA ,permI = 100))
   
