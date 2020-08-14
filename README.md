@@ -3,9 +3,9 @@
 ### Transcriptomics and metabolomics data multivariate statistical analysis
 - This application is a concatenation-based multivariate analytical tool for integrating transcriptomic and metabolomic dataset.
 - The analytical algorithm used in this application is based on the ropls package[1]
-- The example data used during the development of this appilcation based reference [2] and the subset of the data can be found in the folder 'Example_Data_shiny_app_testing'.
+- The example data used during the development of this appilcation based reference [2] and the subset of the data can be found in the folder 'Example_Data_shiny_app_testing' 
 - More detailed user guide can be found within the application
-- Example data files can be found in /TMMS-GUI/Example_Data_shiny_app_testing/
+###### Please use the examples files in /TMMS-GUI/Example_Data_shiny_app_testing/ as a reference for file format
 
 ## Installation instruction:
 
