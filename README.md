@@ -1,10 +1,11 @@
 
 # TMMS-GUI Shiny
 ### Transcriptomics and metabolomics data multivariate statistical analysis
-- This application is a concatenated-based multivariate analytical tool for integrating transcriptomic and metabolomic dataset.
-- The example data used during the development of this appilcation based reference [2] and the subset of the data can be found in the folder 'Example_Data_shiny_app_testing'.
+- This application is a concatenation-based multivariate analytical tool for integrating transcriptomic and metabolomic dataset.
 - The analytical algorithm used in this application is based on the ropls package[1]
+- The example data used during the development of this appilcation based reference [2] and the subset of the data can be found in the folder 'Example_Data_shiny_app_testing'.
 - More detailed user guide can be found within the application
+- Example data files can be found in /TMMS-GUI/Example_Data_shiny_app_testing/
 
 ## Installation instruction:
 
@@ -23,6 +24,8 @@ shiny::runGitHub("TMMS-GUI", "flolai")
 ### OPLS-DA in TMMS-GUI
 <img src="https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/oplsda_plot_GUI.png?raw=true" width="600">
 
+### Contact
+Florence : clai04@mail.bbk.ac.uk
 
 Reference:
 

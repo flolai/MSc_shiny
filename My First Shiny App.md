@@ -4,9 +4,12 @@ The app itself is relatively self explainatory; however, there are some simple r
 
 1. Please make sure sample naming convention is consistance across transcriptomics and metabolomics dataset
 2. Please make sure you have a unique identifier for your gene name and metabolomics name (You can use gene name and compound name directly, providing they are unique)
-3. For both transcriptomics, metabolomics dataset and sample information, please ensure sample names are in rows, genes, compound ID  and sample observations are in columns. Example files can be downloaded together with the APP and example snapshots are shown below.
+3. For both transcriptomics, metabolomics dataset and sample information, please ensure sample names are in rows, genes, compound ID  and sample observations are in columns. Example files (flolai/TMMS-GUI/Example_Data_shiny_app_testing) can be downloaded together with the APP and example snapshots are shown below.
 4. Data must be in .csv format
-4. User data can be either pre-normalised before data input or to use the log2 normalisation method within the application.
+5. User data can be either pre-normalised before data input or to use the log2 normalisation method within the application.
+6. Once gene expression and metabolomics (including gene names and metabolite names) are inputted into the Data Input tab, please move to the Plots tab for sample information (treated/control etc.)
+7. Click to the relevant plot selection according to the normalisation and model you need. (Here, the data will be merged then centered and autoscaled for modelling)
+
 
 **Please be patient, large data set (over 10000 genes and metabolites) may take a few minutes to generate the plot. If you are in a rush, basic model graphic will be display in your rstudio plot section.**
 
@@ -51,7 +54,7 @@ Briefly, when a group of samples clustered together in a scores plot, it is like
 <img src="https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/oplsda_plot_explain2.png?raw=true" width="1000">
 
 
-A very simple explaination of OPLS-Da model can be found in the link below
+A very simple explaination of OPLS-DA model can be found in the link below
 - https://blog.umetrics.com/explaining-differences-or-grouping-data-opls-da-vs-pca-data-analysis
 
 OPLS-DA is a discrimination method where the model will try to find the maximun separation between the two groups. In the above example, there is a good separation between the two sample type is shown in the OPLS-DA scores plot. However, like any supervised models, it is very important to validate the model. In here, the permutation plot is shown together with the model's scores plot. The purpose of the permutation test is to determine whether the separation seen in the scores plot is happened by chance. The dots on the left of the permutation plots are the scrambled observation (default set to 100), dots at x-axis position 1 are the original model. The scambled data should never be better than the original points or the model is invalid. For further model validation explaination please find in reference [2].

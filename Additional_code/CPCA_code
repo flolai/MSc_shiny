@@ -18,7 +18,7 @@ meta [meta  == -Inf] <- 0.001
 
 library(mogsa)
 data_list <- append(list(t(meta)), list(t(ngs)))
-moa <- mbpca(data_list, ncomp = 3, k = "all", method = "blockScore", center=TRUE, scale=FALSE)
+moa <- mbpca(data_list, ncomp = 3, k = 0.4, method = "globalScore", center = TRUE, scale = FALSE)
 plot(moa, value="eig", type=2)
 scr <- moaScore(moa)
 moa_scores<- as.data.frame(moa@fac.scr[, 1:2])
