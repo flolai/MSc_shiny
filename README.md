@@ -18,7 +18,7 @@ shiny::runGitHub("TMMS-GUI", "flolai")
     
 ```    
 
-### PCA in TMMS-CUI
+### PCA in TMMS-GUI
 <img src="https://github.com/flolai/TMMS-GUI/blob/master/app_graphics/plot_area_1.png?raw=true" width="600">
 
 ### OPLS-DA in TMMS-GUI
