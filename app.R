@@ -1,3 +1,4 @@
+#TMMS-GUI
 #This is a R shiny app for data integration of transcriptomics and metabolomics data set
 #Author: Florence Lai 2020
 
@@ -147,6 +148,8 @@ ui <- fluidPage(
                ),
                tableOutput("norm_sum"),
              ),
+             
+    #The third tab is for OPLS-DA biomarkers export.          
     ),
     tabPanel("Biomarkers",
              mainPanel( 
@@ -158,8 +161,8 @@ ui <- fluidPage(
                ),
                conditionalPanel(
                  condition = ("input.oplsda_norm != 0"),
-                 downloadButton("download_gp1", "Download group 1 (left) genes and metabolites"),
-                 downloadButton("download_gp2", "Download group 2 (right) genes and metabolites"),
+                 downloadButton("download_gp1", "Download group 1 (left) genes and metabolites - log2 transformed data"),
+                 downloadButton("download_gp2", "Download group 2 (right) genes and metabolites - log2 transformed data"),
                ),
                tags$hr(),             
                DT::dataTableOutput("biomarkers_gp1_no_norm"),
@@ -189,7 +192,6 @@ server <- function(input, output,session){
   })
   
   
-  
   #reading transcriptomics data, 1st column = sample name    
   ngs <- reactive({
     if (is.null(input$ngs)){
@@ -217,7 +219,7 @@ server <- function(input, output,session){
     
   })
   
-  
+  #Minor data manipulation for sample names containing "-"
   all_names <- reactive({
     temp_comp <- t(meta())
     temp_comp <- as.data.frame(row.names(temp_comp))
@@ -295,6 +297,7 @@ server <- function(input, output,session){
   
   
   #PCA for no log 2 normalised data
+  #PCA scores plot
   pca_full <- reactive(opls(autoscale_full$df,scaleC= "none"))
   observeEvent(input$pca_full_scores,{  
     output$pca_full_nice <- renderPlot({
@@ -304,6 +307,7 @@ server <- function(input, output,session){
       pca_full_nice
     })
     
+    #PCA loadings plot
     output$pca_full_loadings <- renderGirafe({
       pca_full_load<-as.data.frame(getLoadingMN(pca_full()))
       pca_full_load$label <- row.names(pca_full_load)  
@@ -321,6 +325,7 @@ server <- function(input, output,session){
     
   })  
   
+  #Output of loadings plot markers
   
   selected_marks <- reactive({
     if (is.null(input$pca_full_loadings_selected)){
@@ -331,7 +336,7 @@ server <- function(input, output,session){
   })
   
   
-  
+
   output$datatab <- DT::renderDataTable({options = list(scrollX = TRUE)
   marks <- as.data.frame(row.names(getLoadingMN(pca_full())))
   out <- as.data.frame(selected_marks())
@@ -350,7 +355,7 @@ server <- function(input, output,session){
   })
   
   #PCA for log2 normalalised data
-  
+  #PCA scores plot
   PCA_log2 <- reactive(opls(autoscale_log2_full$df,scaleC= "none"))
   observeEvent(input$PCA_log2_scores,{
     output$pca_log2_nice <- renderPlot({
@@ -360,6 +365,7 @@ server <- function(input, output,session){
       pca_log2_nice
     })
     
+    #PCA loadings plot
     output$pca_log2_loadings <- renderGirafe({
       PCA_log2_load<-as.data.frame(getLoadingMN(PCA_log2()))
       PCA_log2_load$label<- row.names(PCA_log2_load)  
@@ -377,7 +383,7 @@ server <- function(input, output,session){
     }) 
   })
   
-  
+  #Output for loadings plot selection
   selected_marks_log2 <- reactive({
     if (is.null(input$pca_log2_loadings_selected)){
       return(print('Please select genes and metabolite'))
@@ -395,6 +401,7 @@ server <- function(input, output,session){
   out
   })
   
+  #Output for PC1 and PC2 variable explain
   observeEvent(input$PCA_log2_scores, {
     output$norm_PCA_R2X <- renderTable(rownames = FALSE, colnames = F,{
       norm_PCA_R2X <- t(as.data.frame(PCA_log2()@modelDF[["R2X"]]*100)[c(1:2),])
@@ -405,7 +412,7 @@ server <- function(input, output,session){
   })
   
   
-  
+  #OPLS-Da modelling
   
   oplsda_no_norm <- reactive(opls(autoscale_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA ,permI = 100))
   
@@ -484,7 +491,7 @@ server <- function(input, output,session){
   
   
   #normalised section
-  
+  #OPLS-DA scores and permutation plots
   oplsda_norm <- reactive(opls(autoscale_log2_full$df,as.character(samp_colour()) , scaleC= "none", predI = 1, orthoI = NA, permI = 100))
   
   observeEvent(input$oplsda_norm, {
