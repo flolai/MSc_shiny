@@ -47,7 +47,7 @@ ui <- fluidPage(
              ),
              
              column(width = 6,
-                    (includeMarkdown("My First Shiny App.md"))
+                    (includeMarkdown("AppInstructions.md"))
              )
              )
              
